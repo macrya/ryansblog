@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <clipPath id="avatar-circle">
+      <circle cx="100" cy="100" r="96" />
+    </clipPath>
+    <linearGradient id="cafe-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FAF8F5" />
+      <stop offset="60%" stop-color="#EBE7E0" />
+      <stop offset="100%" stop-color="#DCD6CD" />
+    </linearGradient>
+    <linearGradient id="skin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7B4E38" />
+      <stop offset="50%" stop-color="#673E2A" />
+      <stop offset="100%" stop-color="#543020" />
+    </linearGradient>
+    <linearGradient id="pullover" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="50%" stop-color="#F4F4F6" />
+      <stop offset="100%" stop-color="#E2E4E9" />
+    </linearGradient>
+    <linearGradient id="rim-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#722F37" />
+      <stop offset="100%" stop-color="#9A3B45" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Ring / Border -->
+  <circle cx="100" cy="100" r="98" fill="none" stroke="url(#rim-light)" stroke-width="3" />
+
+  <g clip-path="url(#avatar-circle)">
+    <!-- Cafe Background -->
+    <rect width="200" height="200" fill="url(#cafe-bg)" />
+    
+    <!-- Cafe Window & Art Posters in background -->
+    <rect x="15" y="20" width="45" height="75" rx="4" fill="#60A5FA" opacity="0.15" />
+    <circle cx="160" cy="40" r="14" fill="#F43F5E" opacity="0.12" />
+    <circle cx="172" cy="55" r="10" fill="#FBBF24" opacity="0.15" />
+    <!-- Red Barstool Accent from photo -->
+    <path d="M145 130 C155 125, 175 140, 185 190" stroke="#DC2626" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6" />
+    <path d="M155 155 L180 155" stroke="#DC2626" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+
+    <!-- Shoulders & White Quarter-Zip Sweatshirt -->
+    <path d="M30 210 C32 170, 52 145, 78 136 C86 148, 114 148, 122 136 C148 145, 168 170, 170 210 Z" fill="url(#pullover)" />
+    <!-- Sweatshirt Shadow/Folds -->
+    <path d="M78 136 C88 152, 112 152, 122 136 L122 165 C112 175, 88 175, 78 165 Z" fill="#D5D8DF" opacity="0.5" />
+    <!-- Quarter-Zip Metal Collar & Zipper -->
+    <path d="M82 130 L100 148 L118 130 L124 138 L100 178 L76 138 Z" fill="#E5E7EB" stroke="#CBD5E1" stroke-width="1.5" />
+    <line x1="100" y1="148" x2="100" y2="175" stroke="#64748B" stroke-width="2" stroke-linecap="round" />
+    <circle cx="100" cy="177" r="2.5" fill="#475569" />
+
+    <!-- Checkered pants hint at bottom -->
+    <rect x="55" y="195" width="90" height="20" fill="#3F3F46" />
+    <path d="M65 195 L75 205 M85 195 L95 205 M105 195 L115 205 M125 195 L135 205" stroke="#71717A" stroke-width="3" />
+
+    <!-- Neck -->
+    <path d="M86 112 L86 140 C94 145, 106 145, 114 140 L114 112 Z" fill="#543020" />
+
+    <!-- Head / Jaw Shape -->
+    <path d="M68 84 C68 116, 82 126, 100 126 C118 126, 132 116, 132 84 C132 54, 118 42, 100 42 C82 42, 68 54, 68 84 Z" fill="url(#skin)" />
+
+    <!-- Fade Haircut (Short dark hair) -->
+    <path d="M66 72 C66 45, 80 34, 100 34 C120 34, 134 45, 134 72 C134 78, 132 82, 131 82 C130 68, 126 50, 118 45 C110 40, 90 40, 82 45 C74 50, 70 68, 69 82 C68 82, 66 78, 66 72 Z" fill="#181514" />
+    <path d="M67 76 C67 60, 78 44, 100 44 C122 44, 133 60, 133 76 C131 66, 122 52, 100 52 C78 52, 69 66, 67 76 Z" fill="#2D2421" opacity="0.8" />
+
+    <!-- Ears -->
+    <circle cx="68" cy="85" r="7" fill="#543020" />
+    <circle cx="68" cy="85" r="4" fill="#3D2115" />
+    <circle cx="132" cy="85" r="7" fill="#543020" />
+    <circle cx="132" cy="85" r="4" fill="#3D2115" />
+
+    <!-- Eyebrows (Thoughtful angle) -->
+    <path d="M78 72 Q86 68, 93 72" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <path d="M107 72 Q114 68, 122 72" stroke="#1C1917" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+    <!-- Eyes (Looking thoughtfully slightly up-right as in photo) -->
+    <ellipse cx="86" cy="79" rx="4.5" ry="3.2" fill="#FFFFFF" />
+    <circle cx="87" cy="78.5" r="2.2" fill="#1C1917" />
+    <circle cx="88" cy="77.8" r="0.8" fill="#FFFFFF" />
+
+    <ellipse cx="114" cy="79" rx="4.5" ry="3.2" fill="#FFFFFF" />
+    <circle cx="115" cy="78.5" r="2.2" fill="#1C1917" />
+    <circle cx="116" cy="77.8" r="0.8" fill="#FFFFFF" />
+
+    <!-- Nose -->
+    <path d="M98 78 L97 93 Q100 96, 103 93 L102 78" stroke="#452718" stroke-width="1.5" stroke-linecap="round" fill="none" />
+    <circle cx="95" cy="94" r="1.5" fill="#3D2115" />
+    <circle cx="105" cy="94" r="1.5" fill="#3D2115" />
+
+    <!-- Mustache / Goatee subtle shadow -->
+    <path d="M92 102 Q100 101, 108 102" stroke="#3D2115" stroke-width="1.5" stroke-linecap="round" opacity="0.6" fill="none" />
+    <!-- Lips -->
+    <path d="M93 105 Q100 108, 107 105" stroke="#452718" stroke-width="2.2" stroke-linecap="round" fill="none" />
+
+    <!-- Hand raised touching hair (Key signature gesture from the uploaded photo!) -->
+    <!-- Arm coming up from right -->
+    <path d="M152 145 Q158 105, 142 62" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" fill="none" />
+    <path d="M142 62 Q136 48, 126 42" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" fill="none" />
+    <!-- Hand & Fingers near temple/head -->
+    <path d="M125 43 C120 40, 115 38, 112 40 C110 42, 115 46, 120 47 Z" fill="#673E2A" />
+    <circle cx="124" cy="44" r="5" fill="#673E2A" />
+    <circle cx="120" cy="41" r="3.5" fill="#7B4E38" />
+  </g>
+</svg>

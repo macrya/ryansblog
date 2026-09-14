@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ActiveSection } from '../types';
+import { BrandAvatar } from './BrandAvatar';
 import {
   Feather,
   Compass,
@@ -69,27 +70,21 @@ export function Navigation({
       id="global-header"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-        {/* Author Brand / Monogram */}
+        {/* Author Brand / Avatar & Monogram */}
         <div className="flex items-center gap-3">
+          <BrandAvatar size="md" />
           <button
             type="button"
             onClick={() => onSelectSection('poet')}
             className="group text-left focus:outline-none"
             id="brand-home-btn"
           >
-            <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-[#722F37] text-amber-50 font-cormorant text-lg font-bold flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                M
-              </span>
-              <div>
-                <span className="font-cormorant text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight leading-none block">
-                  MarkRyan
-                </span>
-                <span className="text-[10px] tracking-wider uppercase text-stone-500 font-sans block mt-0.5">
-                  Creative Developer &middot; Technical Architect
-                </span>
-              </div>
-            </div>
+            <span className="font-cormorant text-xl sm:text-2xl font-semibold text-stone-900 tracking-tight leading-none block group-hover:text-[#722F37] transition-colors">
+              MarkRyan
+            </span>
+            <span className="text-[10px] tracking-wider uppercase text-stone-500 font-sans block mt-0.5">
+              Creative Developer &middot; Technical Architect
+            </span>
           </button>
         </div>
 
