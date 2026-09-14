@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MarkRyan — The Blog (The Diary)</title>
+    <link>https://markryan.dev</link>
+    <description>Minimalist diary, engineering ontologies, and literary meditations by MarkRyan.</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 14 Sep 2026 13:20:00 GMT</lastBuildDate>
+    <atom:link href="https://markryan.dev/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rain on the Skylight, Silence in the Terminal</title>
+      <link>https://markryan.dev/#diary-entry-1</link>
+      <guid isPermaLink="false">entry-1</guid>
+      <pubDate>Mon, 14 Sep 2026 02:14:00 GMT</pubDate>
+      <description><![CDATA[The house is completely dark except for the single phosphor glow of the monitor. Outside, the rain is beating against the glass with that rhythmic, metallic hiss that makes every clock in the room feel unnecessary. I spent six hours today debugging an asynchronous race condition in the graph correlation crawler...]]></description>
+      <enclosure url="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&amp;fit=crop&amp;w=1200&amp;q=85" type="image/jpeg" length="0" />
+    </item>
+    <item>
+      <title>On Dostoevsky’s Solitude and Modern Hyper-Connectivity</title>
+      <link>https://markryan.dev/#diary-entry-2</link>
+      <guid isPermaLink="false">entry-2</guid>
+      <pubDate>Tue, 08 Sep 2026 23:42:00 GMT</pubDate>
+      <description><![CDATA[Re-read White Nights this evening. What strikes me is how unhurried the heartbreak is. The characters walk along the Neva for hours, exchanging paragraphs that would take twenty text messages today to butcher. In our era of fiber optics and millisecond latency, we have abolished distance...]]></description>
+    </item>
+  </channel>
+</rss>

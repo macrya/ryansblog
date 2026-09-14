@@ -1,0 +1,6 @@
+{
+  "name": "MarkRyan — Creative Developer & Technical Architect",
+  "description": "Personal website, portfolio, and diary blog CMS featuring The Poet/Writer, Random Knowledge, Computer Stuff, and The Diary Page, with a Vercel Blob client-side image cropping pipeline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

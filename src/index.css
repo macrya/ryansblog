@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+    --font-baskerville: 'Libre Baskerville', Baskerville, Georgia, serif;
+    --font-pecita: 'Caveat', 'Pecita', cursive;
+    --font-bricolage: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+    --font-bajaderka: 'Cinzel Decorative', Marcellus, serif;
+    --font-nightingale: 'Newsreader', 'Libre Baskerville', Georgia, serif;
+    --font-comic: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+    --font-code: 'Fira Code', monospace;
+  }
+}
+
+.font-cormorant {
+  font-family: var(--font-cormorant);
+}
+
+.font-baskerville {
+  font-family: var(--font-baskerville);
+}
+
+.font-pecita {
+  font-family: var(--font-pecita);
+}
+
+.font-bricolage {
+  font-family: var(--font-bricolage);
+}
+
+.font-bajaderka {
+  font-family: var(--font-bajaderka);
+}
+
+.font-nightingale {
+  font-family: var(--font-nightingale);
+}
+
+.font-comic {
+  font-family: var(--font-comic);
+}
+
+.font-code {
+  font-family: var(--font-code);
+}
+
+/* Faint textured wallpaper typography for The Poet/Writer section */
+.poetry-wallpaper {
+  background-color: #f1f1f3;
+  position: relative;
+  overflow: hidden;
+}
+
+.poetry-wallpaper-text {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.042;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  line-height: 1.45;
+  font-size: 1.15rem;
+  overflow: hidden;
+  color: #1a1617;
+  mask-image: radial-gradient(circle at center, black 65%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at center, black 65%, transparent 100%);
+}
+
+/* Custom scrollbars for clean aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(114, 47, 55, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(114, 47, 55, 0.5);
+}
+
+/* Custom subtle Burgundy accents */
+.border-burgundy {
+  border-color: #722f37;
+}
+.text-burgundy {
+  color: #722f37;
+}
+.bg-burgundy {
+  background-color: #722f37;
+}
