@@ -72,7 +72,11 @@ export function Navigation({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
         {/* Author Brand / Avatar & Monogram */}
         <div className="flex items-center gap-3">
-          <BrandAvatar size="md" />
+          <BrandAvatar
+            size="md"
+            isAdmin={isAdmin}
+            onOpenAdminLogin={onOpenAdminLogin}
+          />
           <button
             type="button"
             onClick={() => onSelectSection('poet')}

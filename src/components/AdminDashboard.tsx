@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { DateDisplay } from './DateDisplay';
 import { DeleteButton } from './DeleteButton';
+import { BrandAvatar } from './BrandAvatar';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -223,16 +224,20 @@ export function AdminDashboard({
           <div className="space-y-8 animate-fade-in">
             {/* Greeting Card */}
             <div className="p-6 rounded-2xl bg-white border border-stone-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="space-y-1">
-                <span className="text-[11px] font-semibold text-[#722F37] uppercase tracking-wider">
-                  Authenticated Administrator Session
-                </span>
-                <h2 className="font-cormorant text-3xl font-medium text-stone-900">
-                  Welcome back, MarkRyan.
-                </h2>
-                <p className="text-xs text-stone-500 max-w-xl">
-                  You are viewing the private administrative console. Public visitors cannot view this page or publish content without the &ldquo;Mogul&rdquo; password.
-                </p>
+              <div className="flex items-center gap-4">
+                <BrandAvatar size="lg" isAdmin={true} />
+                <div className="space-y-1">
+                  <span className="text-[11px] font-semibold text-[#722F37] uppercase tracking-wider flex items-center gap-1.5">
+                    <Shield className="w-3 h-3" />
+                    Authenticated Administrator Session
+                  </span>
+                  <h2 className="font-cormorant text-3xl font-medium text-stone-900">
+                    Welcome back, MarkRyan.
+                  </h2>
+                  <p className="text-xs text-stone-500 max-w-xl">
+                    You are viewing the private administrative console. Click your profile avatar to update or replace your author photo at any time.
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">

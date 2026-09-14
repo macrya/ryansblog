@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Eye, X, Sparkles } from 'lucide-react';
+import { Camera, Eye, X, Shield, Lock } from 'lucide-react';
 
 interface BrandAvatarProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showUploadOption?: boolean;
+  isAdmin?: boolean;
+  onOpenAdminLogin?: () => void;
 }
 
 export function BrandAvatar({
   className = '',
   size = 'md',
   showUploadOption = true,
+  isAdmin = false,
+  onOpenAdminLogin,
 }: BrandAvatarProps) {
   // Ordered sources to attempt loading
   const defaultSources = [
@@ -27,11 +31,23 @@ export function BrandAvatar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check if user previously saved a custom avatar in localStorage
-    const saved = localStorage.getItem('markryan_custom_avatar');
-    if (saved) {
+    // Read and synchronize custom avatar from localStorage
+    const syncAvatar = () => {
+      const saved = localStorage.getItem('markryan_custom_avatar');
       setCustomAvatar(saved);
-    }
+      if (saved) {
+        setHasFailedAll(false);
+      }
+    };
+
+    syncAvatar();
+    window.addEventListener('storage', syncAvatar);
+    window.addEventListener('avatar_updated', syncAvatar);
+
+    return () => {
+      window.removeEventListener('storage', syncAvatar);
+      window.removeEventListener('avatar_updated', syncAvatar);
+    };
   }, []);
 
   const handleImageError = () => {
@@ -55,9 +71,12 @@ export function BrandAvatar({
     sm: 'w-8 h-8',
     md: 'w-9 h-9 sm:w-10 sm:h-10',
     lg: 'w-14 h-14 sm:w-16 sm:h-16',
+    xl: 'w-20 h-20 sm:w-24 sm:h-24',
   }[size];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) return;
+
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -74,12 +93,21 @@ export function BrandAvatar({
         setHasFailedAll(false);
         try {
           localStorage.setItem('markryan_custom_avatar', dataUrl);
+          window.dispatchEvent(new Event('avatar_updated'));
         } catch (storageErr) {
           console.warn('Could not save avatar to localStorage:', storageErr);
         }
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleResetAvatar = () => {
+    if (!isAdmin) return;
+    setCustomAvatar(null);
+    localStorage.removeItem('markryan_custom_avatar');
+    setCurrentSrcIndex(0);
+    window.dispatchEvent(new Event('avatar_updated'));
   };
 
   return (
@@ -93,9 +121,9 @@ export function BrandAvatar({
           }}
           className={`relative rounded-full overflow-hidden p-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#722F37]/50 ${
             sizeClasses
-          } ring-1 ring-stone-300/80 shadow-xs hover:shadow-md hover:ring-[#722F37] bg-white group`}
+          } ring-1 ring-stone-300/80 shadow-xs hover:shadow-md hover:ring-[#722F37] bg-white group cursor-pointer`}
           id="header-brand-avatar"
-          title="MarkRyan — View profile photo & details"
+          title={isAdmin ? "MarkRyan — Admin Profile (Click to change photo)" : "MarkRyan — Profile (Click to view)"}
           aria-label="MarkRyan profile photo"
         >
           {!hasFailedAll ? (
@@ -112,23 +140,25 @@ export function BrandAvatar({
             </div>
           )}
 
-          {/* Quick upload overlay indicator on hover */}
+          {/* Hover overlay indicator: Camera for admin, Eye for viewer */}
           {showUploadOption && (
             <span className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white backdrop-blur-[1px]">
-              <Eye className="w-3.5 h-3.5" />
+              {isAdmin ? <Camera className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
             </span>
           )}
         </button>
 
-        {/* Hidden File Input for quick photo replacement */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          accept="image/*"
-          className="hidden"
-          id="avatar-photo-upload-input"
-        />
+        {/* Hidden File Input for admin photo replacement only */}
+        {isAdmin && (
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            className="hidden"
+            id="avatar-photo-upload-input"
+          />
+        )}
       </div>
 
       {/* Modal Profile Viewer */}
@@ -155,6 +185,18 @@ export function BrandAvatar({
             </button>
 
             <div className="flex flex-col items-center text-center">
+              {/* Admin status pill if logged in */}
+              {isAdmin ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#722F37]/10 text-[#722F37] text-[11px] font-semibold tracking-wide uppercase mb-3">
+                  <Shield className="w-3 h-3" />
+                  Admin Authorized
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[11px] font-medium tracking-wide uppercase mb-3">
+                  Author Profile
+                </span>
+              )}
+
               {/* Large Image Preview */}
               <div className="relative w-36 h-36 rounded-2xl overflow-hidden border-2 border-[#722F37]/20 shadow-md bg-stone-100 mb-4 group">
                 <img
@@ -163,15 +205,18 @@ export function BrandAvatar({
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-top"
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs gap-1 backdrop-blur-xs cursor-pointer"
-                  title="Upload photo"
-                >
-                  <Camera className="w-5 h-5" />
-                  <span>Update Photo</span>
-                </button>
+                {/* Only admins see the upload hover overlay on the modal photo */}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs gap-1 backdrop-blur-xs cursor-pointer"
+                    title="Upload photo"
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span>Update Photo</span>
+                  </button>
+                )}
               </div>
 
               <h3 className="font-cormorant text-2xl font-bold text-stone-900 leading-tight">
@@ -184,32 +229,50 @@ export function BrandAvatar({
                 Writer of poetry, builder of systems, and curious observer of everyday elegance.
               </p>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 mt-5 w-full">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg transition-colors border border-stone-300"
-                  id="modal-upload-photo-btn"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Upload / Replace Photo</span>
-                </button>
-                {customAvatar && (
+              {/* Action Buttons: ONLY FOR ADMIN */}
+              {isAdmin ? (
+                <div className="flex items-center gap-2 mt-5 w-full">
                   <button
                     type="button"
-                    onClick={() => {
-                      setCustomAvatar(null);
-                      localStorage.removeItem('markryan_custom_avatar');
-                      setCurrentSrcIndex(0);
-                    }}
-                    className="py-2 px-3 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
-                    title="Reset to default photo"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-medium bg-[#722F37] hover:bg-[#581c24] text-white rounded-lg transition-colors shadow-xs cursor-pointer"
+                    id="modal-upload-photo-btn"
                   >
-                    Reset
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Upload / Replace Photo</span>
                   </button>
-                )}
-              </div>
+                  {customAvatar && (
+                    <button
+                      type="button"
+                      onClick={handleResetAvatar}
+                      className="py-2 px-3 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200 cursor-pointer"
+                      title="Reset to default photo"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              ) : (
+                /* Unauthenticated Visitor View */
+                <div className="mt-5 pt-3.5 border-t border-stone-100 w-full flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 text-[11px] text-stone-400">
+                    <Lock className="w-3 h-3 text-stone-400" />
+                    Photo upload restricted to Admin
+                  </span>
+                  {onOpenAdminLogin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        onOpenAdminLogin();
+                      }}
+                      className="text-[11px] font-semibold text-[#722F37] hover:underline cursor-pointer"
+                    >
+                      Admin Login
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
