@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import type { ComputerArticle, CodeBlockItem } from '../types';
-import { Terminal, Copy, Check, Code2, ShieldAlert, Cpu, Sparkles, Binary } from 'lucide-react';
+import { Terminal, Copy, Check, Code2, ShieldAlert, Cpu, Sparkles, Binary, Trash2 } from 'lucide-react';
 
 interface ComputerSectionProps {
   articles: ComputerArticle[];
+  isAdmin?: boolean;
+  onDeleteComputerArticle?: (id: string) => void;
 }
 
-export function ComputerSection({ articles }: ComputerSectionProps) {
+export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: ComputerSectionProps) {
   const [selectedArticleId, setSelectedArticleId] = useState<string>(articles[0]?.id || '');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
@@ -104,12 +106,34 @@ export function ComputerSection({ articles }: ComputerSectionProps) {
               >
                 {/* Header */}
                 <div className="border-b border-stone-200 pb-6">
-                  <div className="flex items-center gap-2 text-xs font-mono text-stone-500 mb-2">
-                    <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-800 font-medium">
-                      {activeArticle.category}
-                    </span>
-                    <span>&bull;</span>
-                    <span>{activeArticle.date}</span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 text-xs font-mono text-stone-500">
+                      <span className="px-2 py-0.5 rounded bg-stone-100 text-stone-800 font-medium">
+                        {activeArticle.category}
+                      </span>
+                      <span>&bull;</span>
+                      <span>{activeArticle.date}</span>
+                    </div>
+
+                    {isAdmin && onDeleteComputerArticle && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to remove "${activeArticle.title}"?`)) {
+                            onDeleteComputerArticle(activeArticle.id);
+                            const remaining = articles.filter((a) => a.id !== activeArticle.id);
+                            if (remaining.length > 0) {
+                              setSelectedArticleId(remaining[0].id);
+                            }
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                        title="Delete this article (Admin)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Article</span>
+                      </button>
+                    )}
                   </div>
 
                   <h2 className="font-bajaderka text-3xl sm:text-4xl text-stone-950 tracking-wide leading-tight mb-2">

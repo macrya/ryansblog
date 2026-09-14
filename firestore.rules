@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'kimmarkryan5@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow write: if isAdmin() || (isSignedIn() && request.auth.token.email == 'kimmarkryan5@gmail.com');
+    }
+
+    // Poems Collection
+    match /poems/{poemId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Curiosities Collection
+    match /curiosities/{curiosityId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Computer Articles Collection
+    match /computerArticles/{articleId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Diary Posts Collection
+    match /diaryPosts/{postId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Comments Collection
+    match /comments/{commentId} {
+      allow read: if resource.data.status == 'approved' || isAdmin();
+      allow create: if isValidId(commentId)
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() >= 1 && request.resource.data.authorName.size() <= 100
+        && request.resource.data.content is string
+        && request.resource.data.content.size() >= 1 && request.resource.data.content.size() <= 2000
+        && (request.resource.data.status == 'pending' || request.resource.data.status == 'approved');
+      allow update, delete: if isAdmin();
+    }
+
+    // System Settings Collection
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

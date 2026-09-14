@@ -1,0 +1,342 @@
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged,
+  type User,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  getDocFromServer,
+  setDoc,
+  deleteDoc,
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  type Firestore,
+  writeBatch,
+} from 'firebase/firestore';
+
+import firebaseConfig from '../../firebase-applet-config.json';
+import type { Poem, CuriosityEssay, ComputerArticle, DiaryPost, BlogComment } from '../types';
+import {
+  INITIAL_POEMS,
+  INITIAL_CURIOSITIES,
+  INITIAL_COMPUTER_ARTICLES,
+  INITIAL_DIARY_POSTS,
+  INITIAL_COMMENTS,
+} from '../data/initialContent';
+
+// 1. Initialize Firebase App
+export const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+// 2. Initialize Firebase Auth
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// 3. Initialize Firestore with specific provisioned database
+export const db: Firestore = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+  : getFirestore(app);
+
+// 4. Test connection on boot as mandated by Firebase specification
+async function testFirestoreConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.warn('Firestore is running in offline cache mode.');
+    }
+  }
+}
+testFirestoreConnection();
+
+export const SUPERADMIN_EMAIL = 'kimmarkryan5@gmail.com';
+
+/**
+ * Check if the given Firebase user has admin authorization.
+ */
+export async function verifyUserIsAdmin(user: User | null): Promise<boolean> {
+  if (!user) return false;
+  if (user.email && user.email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase()) {
+    // Ensure admin document exists for rules ABAC
+    try {
+      await setDoc(
+        doc(db, 'admins', user.uid),
+        {
+          email: user.email,
+          role: 'superadmin',
+          lastSeen: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      console.warn('Could not update admin doc:', e);
+    }
+    return true;
+  }
+
+  try {
+    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+    return adminDoc.exists();
+  } catch (err) {
+    console.warn('Error verifying admin authorization:', err);
+    return false;
+  }
+}
+
+// -------------------------------------------------------------
+// REALTIME PERSISTENT SUBSCRIPTIONS (Live sync across browsers)
+// -------------------------------------------------------------
+
+export function subscribeToPoems(onUpdate: (poems: Poem[]) => void) {
+  const colRef = collection(db, 'poems');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        onUpdate([]);
+        return;
+      }
+      const data = snapshot.docs.map((d) => d.data() as Poem);
+      onUpdate(data);
+    },
+    (err) => {
+      console.warn('Poems subscription error, falling back:', err);
+    }
+  );
+}
+
+export function subscribeToCuriosities(onUpdate: (essays: CuriosityEssay[]) => void) {
+  const colRef = collection(db, 'curiosities');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        onUpdate([]);
+        return;
+      }
+      const data = snapshot.docs.map((d) => d.data() as CuriosityEssay);
+      onUpdate(data);
+    },
+    (err) => {
+      console.warn('Curiosities subscription error:', err);
+    }
+  );
+}
+
+export function subscribeToComputerArticles(onUpdate: (articles: ComputerArticle[]) => void) {
+  const colRef = collection(db, 'computerArticles');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        onUpdate([]);
+        return;
+      }
+      const data = snapshot.docs.map((d) => d.data() as ComputerArticle);
+      onUpdate(data);
+    },
+    (err) => {
+      console.warn('Computer articles subscription error:', err);
+    }
+  );
+}
+
+export function subscribeToDiaryPosts(onUpdate: (posts: DiaryPost[]) => void) {
+  const colRef = collection(db, 'diaryPosts');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        onUpdate([]);
+        return;
+      }
+      const data = snapshot.docs.map((d) => d.data() as DiaryPost);
+      // Sort newest first
+      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      onUpdate(data);
+    },
+    (err) => {
+      console.warn('Diary posts subscription error:', err);
+    }
+  );
+}
+
+export function subscribeToComments(onUpdate: (comments: BlogComment[]) => void) {
+  const colRef = collection(db, 'comments');
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      if (snapshot.empty) {
+        onUpdate([]);
+        return;
+      }
+      const data = snapshot.docs.map((d) => d.data() as BlogComment);
+      onUpdate(data);
+    },
+    (err) => {
+      console.warn('Comments subscription error:', err);
+    }
+  );
+}
+
+// -------------------------------------------------------------
+// DURABLE PERSISTENT WRITES (Cloud Firestore)
+// -------------------------------------------------------------
+
+export async function persistPoem(poem: Poem): Promise<void> {
+  await setDoc(doc(db, 'poems', poem.id), poem, { merge: true });
+}
+
+export async function deletePoemFromCloud(poemId: string): Promise<void> {
+  await deleteDoc(doc(db, 'poems', poemId));
+}
+
+export async function persistCuriosity(essay: CuriosityEssay): Promise<void> {
+  await setDoc(doc(db, 'curiosities', essay.id), essay, { merge: true });
+}
+
+export async function deleteCuriosityFromCloud(essayId: string): Promise<void> {
+  await deleteDoc(doc(db, 'curiosities', essayId));
+}
+
+export async function persistComputerArticle(article: ComputerArticle): Promise<void> {
+  await setDoc(doc(db, 'computerArticles', article.id), article, { merge: true });
+}
+
+export async function deleteComputerArticleFromCloud(articleId: string): Promise<void> {
+  await deleteDoc(doc(db, 'computerArticles', articleId));
+}
+
+export async function persistDiaryPost(post: DiaryPost): Promise<void> {
+  await setDoc(doc(db, 'diaryPosts', post.id), post, { merge: true });
+}
+
+export async function deleteDiaryPostFromCloud(postId: string): Promise<void> {
+  await deleteDoc(doc(db, 'diaryPosts', postId));
+}
+
+export async function persistComment(comment: BlogComment): Promise<void> {
+  await setDoc(doc(db, 'comments', comment.id), comment, { merge: true });
+}
+
+export async function updateCommentStatusInCloud(commentId: string, status: 'approved' | 'pending' | 'flagged'): Promise<void> {
+  await setDoc(doc(db, 'comments', commentId), { status }, { merge: true });
+}
+
+export async function deleteCommentFromCloud(commentId: string): Promise<void> {
+  await deleteDoc(doc(db, 'comments', commentId));
+}
+
+// -------------------------------------------------------------
+// INITIAL SEEDING & SITE RESETS (Guarantees Content Across Versions)
+// -------------------------------------------------------------
+
+/**
+ * Ensures initial curated content exists in Cloud Firestore so that
+ * fresh visitors, new deployments, and different devices all see the
+ * complete portfolio seamlessly without losing any user edits.
+ */
+export async function seedInitialContentIfEmpty(): Promise<boolean> {
+  try {
+    const checkDoc = await getDoc(doc(db, 'settings', 'initial_seed_completed'));
+    if (checkDoc.exists()) {
+      return false; // Already seeded in cloud
+    }
+
+    const batch = writeBatch(db);
+
+    // Seed Poems
+    for (const poem of INITIAL_POEMS) {
+      batch.set(doc(db, 'poems', poem.id), poem);
+    }
+    // Seed Curiosities
+    for (const essay of INITIAL_CURIOSITIES) {
+      batch.set(doc(db, 'curiosities', essay.id), essay);
+    }
+    // Seed Computer Articles
+    for (const art of INITIAL_COMPUTER_ARTICLES) {
+      batch.set(doc(db, 'computerArticles', art.id), art);
+    }
+    // Seed Diary Posts
+    for (const post of INITIAL_DIARY_POSTS) {
+      batch.set(doc(db, 'diaryPosts', post.id), post);
+    }
+    // Seed Comments
+    for (const comment of INITIAL_COMMENTS) {
+      batch.set(doc(db, 'comments', comment.id), comment);
+    }
+
+    // Mark seed completed
+    batch.set(doc(db, 'settings', 'initial_seed_completed'), {
+      seededAt: new Date().toISOString(),
+      version: '1.0.0',
+    });
+
+    await batch.commit();
+    return true;
+  } catch (err) {
+    console.warn('Initial Firestore seed skipped or deferred:', err);
+    return false;
+  }
+}
+
+/**
+ * Resets Cloud Firestore to the curated portfolio default state.
+ */
+export async function resetCloudToDefaults(): Promise<void> {
+  const batch = writeBatch(db);
+  for (const poem of INITIAL_POEMS) {
+    batch.set(doc(db, 'poems', poem.id), poem);
+  }
+  for (const essay of INITIAL_CURIOSITIES) {
+    batch.set(doc(db, 'curiosities', essay.id), essay);
+  }
+  for (const art of INITIAL_COMPUTER_ARTICLES) {
+    batch.set(doc(db, 'computerArticles', art.id), art);
+  }
+  for (const post of INITIAL_DIARY_POSTS) {
+    batch.set(doc(db, 'diaryPosts', post.id), post);
+  }
+  for (const comment of INITIAL_COMMENTS) {
+    batch.set(doc(db, 'comments', comment.id), comment);
+  }
+  await batch.commit();
+}
+
+/**
+ * Clears all cloud content for a clean slate.
+ */
+export async function clearCloudContent(
+  currentPoems: Poem[],
+  currentCuriosities: CuriosityEssay[],
+  currentArticles: ComputerArticle[],
+  currentDiary: DiaryPost[],
+  currentComments: BlogComment[]
+): Promise<void> {
+  const batch = writeBatch(db);
+  for (const p of currentPoems) {
+    batch.delete(doc(db, 'poems', p.id));
+  }
+  for (const c of currentCuriosities) {
+    batch.delete(doc(db, 'curiosities', c.id));
+  }
+  for (const a of currentArticles) {
+    batch.delete(doc(db, 'computerArticles', a.id));
+  }
+  for (const d of currentDiary) {
+    batch.delete(doc(db, 'diaryPosts', d.id));
+  }
+  for (const cm of currentComments) {
+    batch.delete(doc(db, 'comments', cm.id));
+  }
+  await batch.commit();
+}

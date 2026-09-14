@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Eye, X, Shield, Lock } from 'lucide-react';
+import { Camera, Eye, X, Shield, Lock, RotateCcw } from 'lucide-react';
+import { savePersistentImage, getPersistentImage, deletePersistentImage } from '../utils/persistentStorage';
 
 interface BrandAvatarProps {
   className?: string;
@@ -31,12 +32,22 @@ export function BrandAvatar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Read and synchronize custom avatar from localStorage
-    const syncAvatar = () => {
+    // Read and synchronize custom avatar from persistent storage & localStorage
+    let isMounted = true;
+    const syncAvatar = async () => {
       const saved = localStorage.getItem('markryan_custom_avatar');
-      setCustomAvatar(saved);
       if (saved) {
-        setHasFailedAll(false);
+        if (isMounted) {
+          setCustomAvatar(saved);
+          setHasFailedAll(false);
+        }
+      } else {
+        // Check IndexedDB
+        const stored = await getPersistentImage('avatar_primary');
+        if (stored && isMounted) {
+          setCustomAvatar(stored);
+          setHasFailedAll(false);
+        }
       }
     };
 
@@ -45,6 +56,7 @@ export function BrandAvatar({
     window.addEventListener('avatar_updated', syncAvatar);
 
     return () => {
+      isMounted = false;
       window.removeEventListener('storage', syncAvatar);
       window.removeEventListener('avatar_updated', syncAvatar);
     };
@@ -74,7 +86,7 @@ export function BrandAvatar({
     xl: 'w-20 h-20 sm:w-24 sm:h-24',
   }[size];
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isAdmin) return;
 
     const file = e.target.files?.[0];
@@ -85,27 +97,30 @@ export function BrandAvatar({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setCustomAvatar(dataUrl);
-        setHasFailedAll(false);
-        try {
-          localStorage.setItem('markryan_custom_avatar', dataUrl);
-          window.dispatchEvent(new Event('avatar_updated'));
-        } catch (storageErr) {
-          console.warn('Could not save avatar to localStorage:', storageErr);
-        }
+    try {
+      // Compress to 320x320 avatar and store in IndexedDB + localStorage safely
+      const record = await savePersistentImage(file, 'avatar_primary', file.name);
+      setCustomAvatar(record.url);
+      setHasFailedAll(false);
+
+      try {
+        localStorage.setItem('markryan_custom_avatar', record.url);
+      } catch (storageErr) {
+        console.warn('LocalStorage full, relying on IndexedDB:', storageErr);
       }
-    };
-    reader.readAsDataURL(file);
+
+      window.dispatchEvent(new Event('avatar_updated'));
+    } catch (err) {
+      console.error('Failed to process custom avatar:', err);
+      alert('Unable to process avatar image. Please try another image.');
+    }
   };
 
-  const handleResetAvatar = () => {
+  const handleResetAvatar = async () => {
     if (!isAdmin) return;
     setCustomAvatar(null);
     localStorage.removeItem('markryan_custom_avatar');
+    await deletePersistentImage('avatar_primary');
     setCurrentSrcIndex(0);
     window.dispatchEvent(new Event('avatar_updated'));
   };

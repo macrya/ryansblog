@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import type { Poem } from '../types';
 import { WALLPAPER_SNIPPETS } from '../data/initialContent';
-import { BookOpen, Sparkles, Heart, Clock, Quote, Share2, Check } from 'lucide-react';
+import { BookOpen, Sparkles, Heart, Clock, Quote, Share2, Check, Trash2 } from 'lucide-react';
 
 interface PoetSectionProps {
   poems: Poem[];
   onOpenPoemModal?: (poem: Poem) => void;
+  isAdmin?: boolean;
+  onDeletePoem?: (id: string) => void;
 }
 
-export function PoetSection({ poems }: PoetSectionProps) {
+export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: PoetSectionProps) {
   const [selectedPoemId, setSelectedPoemId] = useState<string>(poems[0]?.id || 'poem-1');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -182,6 +184,26 @@ export function PoetSection({ poems }: PoetSectionProps) {
                   </div>
 
                   <div className="flex items-center gap-3">
+                    {isAdmin && onDeletePoem && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to remove "${activePoem.title}"?`)) {
+                            onDeletePoem(activePoem.id);
+                            const remaining = poems.filter((p) => p.id !== activePoem.id);
+                            if (remaining.length > 0) {
+                              setSelectedPoemId(remaining[0].id);
+                            }
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 hover:border-red-400 text-red-600 hover:bg-red-50 bg-white transition-colors"
+                        title="Delete this poem (Admin)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="font-sans">Remove Poem</span>
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => handleCopy(activePoem)}

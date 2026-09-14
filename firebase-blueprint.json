@@ -1,0 +1,137 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized site administrators",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Administrator email"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "superadmin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp"
+        }
+      },
+      "required": ["email", "role"]
+    },
+    "Poem": {
+      "title": "Poem",
+      "description": "Poetry collection pieces",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "stanzas": {
+          "type": "string",
+          "description": "Stanzas or serialized poem lines"
+        },
+        "date": { "type": "string" },
+        "readTime": { "type": "string" },
+        "favorite": { "type": "string" },
+        "theme": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "CuriosityEssay": {
+      "title": "CuriosityEssay",
+      "description": "Horology, aerodynamics, and curious technical essays",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "readTime": { "type": "string" },
+        "date": { "type": "string" },
+        "heroImage": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "content"]
+    },
+    "ComputerArticle": {
+      "title": "ComputerArticle",
+      "description": "UNIX architecture, retro computing, and software systems essays",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "content"]
+    },
+    "DiaryPost": {
+      "title": "DiaryPost",
+      "description": "Personal developer and poetic reflections",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "mood": { "type": "string" },
+        "previewSnippet": { "type": "string" },
+        "fullContent": { "type": "string" },
+        "published": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "fullContent"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Reader comments on diary and blog entries",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "flagged"]
+        },
+        "avatarUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "postId", "authorName", "content", "status"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Authorized site administrators"
+    },
+    "/poems/{poemId}": {
+      "schema": { "$ref": "#/entities/Poem" },
+      "description": "Poetry collection items"
+    },
+    "/curiosities/{curiosityId}": {
+      "schema": { "$ref": "#/entities/CuriosityEssay" },
+      "description": "Curiosity and engineering essays"
+    },
+    "/computerArticles/{articleId}": {
+      "schema": { "$ref": "#/entities/ComputerArticle" },
+      "description": "UNIX and computing articles"
+    },
+    "/diaryPosts/{postId}": {
+      "schema": { "$ref": "#/entities/DiaryPost" },
+      "description": "Diary and journal entries"
+    },
+    "/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Reader reflections and comments"
+    }
+  }
+}

@@ -29,7 +29,33 @@ import { SearchModal } from './components/SearchModal';
 import { RSSModal } from './components/RSSModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboard } from './components/AdminDashboard';
+import { StartOverModal } from './components/StartOverModal';
 import { ToastProvider } from './components/Toast';
+import { clearAllPersistentImages } from './utils/persistentStorage';
+import {
+  auth,
+  verifyUserIsAdmin,
+  subscribeToPoems,
+  subscribeToCuriosities,
+  subscribeToComputerArticles,
+  subscribeToDiaryPosts,
+  subscribeToComments,
+  persistPoem,
+  deletePoemFromCloud,
+  persistCuriosity,
+  deleteCuriosityFromCloud,
+  persistComputerArticle,
+  deleteComputerArticleFromCloud,
+  persistDiaryPost,
+  deleteDiaryPostFromCloud,
+  persistComment,
+  updateCommentStatusInCloud,
+  deleteCommentFromCloud,
+  seedInitialContentIfEmpty,
+  resetCloudToDefaults,
+  clearCloudContent,
+} from './lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
   Github,
   Instagram,
@@ -45,6 +71,7 @@ import {
   ExternalLink,
   Shield,
   Lock,
+  RotateCcw,
 } from 'lucide-react';
 
 export default function App() {
@@ -58,6 +85,7 @@ export default function App() {
     return localStorage.getItem('markryan_is_admin') === 'true';
   });
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState<boolean>(false);
+  const [isStartOverOpen, setIsStartOverOpen] = useState<boolean>(false);
 
   // Persistent collections
   const [poems, setPoems] = useState<Poem[]>(() => {
@@ -86,25 +114,110 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_COMMENTS;
   });
 
-  // Sync state to localStorage
+  // 1. Firebase Authentication Listener (Persistent Auth State)
   useEffect(() => {
-    localStorage.setItem('markryan_poems', JSON.stringify(poems));
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const isPrivileged = await verifyUserIsAdmin(user);
+        setIsAdmin(isPrivileged);
+        if (isPrivileged) {
+          localStorage.setItem('markryan_is_admin', 'true');
+        } else {
+          localStorage.removeItem('markryan_is_admin');
+        }
+      } else {
+        const savedIsAdmin = localStorage.getItem('markryan_is_admin') === 'true';
+        setIsAdmin(savedIsAdmin);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  // 2. Cloud Firestore Realtime Synchronization (Content Persistence across versions)
+  useEffect(() => {
+    // Seed default portfolio documents if Firestore is initially empty
+    seedInitialContentIfEmpty();
+
+    // Subscribe to live collections
+    const unsubPoems = subscribeToPoems((cloudPoems) => {
+      if (cloudPoems.length > 0) {
+        setPoems(cloudPoems);
+      }
+    });
+
+    const unsubCuriosities = subscribeToCuriosities((cloudCuriosities) => {
+      if (cloudCuriosities.length > 0) {
+        setCuriosities(cloudCuriosities);
+      }
+    });
+
+    const unsubArticles = subscribeToComputerArticles((cloudArticles) => {
+      if (cloudArticles.length > 0) {
+        setComputerArticles(cloudArticles);
+      }
+    });
+
+    const unsubDiary = subscribeToDiaryPosts((cloudPosts) => {
+      if (cloudPosts.length > 0) {
+        setDiaryPosts(cloudPosts);
+      }
+    });
+
+    const unsubComments = subscribeToComments((cloudComments) => {
+      if (cloudComments.length > 0) {
+        setComments(cloudComments);
+      }
+    });
+
+    return () => {
+      unsubPoems();
+      unsubCuriosities();
+      unsubArticles();
+      unsubDiary();
+      unsubComments();
+    };
+  }, []);
+
+  // Sync state to localStorage safely for instant offline fallback
+  useEffect(() => {
+    try {
+      localStorage.setItem('markryan_poems', JSON.stringify(poems));
+    } catch (e) {
+      console.warn('LocalStorage quota reached for poems:', e);
+    }
   }, [poems]);
 
   useEffect(() => {
-    localStorage.setItem('markryan_curiosities', JSON.stringify(curiosities));
+    try {
+      localStorage.setItem('markryan_curiosities', JSON.stringify(curiosities));
+    } catch (e) {
+      console.warn('LocalStorage quota reached for curiosities:', e);
+    }
   }, [curiosities]);
 
   useEffect(() => {
-    localStorage.setItem('markryan_computer', JSON.stringify(computerArticles));
+    try {
+      localStorage.setItem('markryan_computer', JSON.stringify(computerArticles));
+    } catch (e) {
+      console.warn('LocalStorage quota reached for computer articles:', e);
+    }
   }, [computerArticles]);
 
   useEffect(() => {
-    localStorage.setItem('markryan_diary', JSON.stringify(diaryPosts));
+    try {
+      localStorage.setItem('markryan_diary', JSON.stringify(diaryPosts));
+    } catch (e) {
+      console.warn('LocalStorage quota reached for diary posts:', e);
+    }
   }, [diaryPosts]);
 
   useEffect(() => {
-    localStorage.setItem('markryan_blog_comments', JSON.stringify(comments));
+    try {
+      localStorage.setItem('markryan_blog_comments', JSON.stringify(comments));
+    } catch (e) {
+      console.warn('LocalStorage quota reached for comments:', e);
+    }
   }, [comments]);
 
   // Global keyboard shortcut: Cmd+K / Ctrl+K to trigger search
@@ -134,47 +247,92 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // CMS Content Additions
-  const handleAddPoem = (newPoem: Poem) => {
-    setPoems((prev) => [newPoem, ...prev]);
+  // CMS Content Additions & Deletions (Realtime Local + Persistent Cloud Firestore)
+  const handleAddPoem = async (newPoem: Poem) => {
+    setPoems((prev) => [newPoem, ...prev.filter((p) => p.id !== newPoem.id)]);
+    try {
+      await persistPoem(newPoem);
+    } catch (err) {
+      console.warn('Could not persist poem to cloud:', err);
+    }
   };
 
-  const handleDeletePoem = (id: string) => {
+  const handleDeletePoem = async (id: string) => {
     setPoems((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deletePoemFromCloud(id);
+    } catch (err) {
+      console.warn('Could not delete poem from cloud:', err);
+    }
   };
 
-  const handleAddCuriosity = (newCuriosity: CuriosityEssay) => {
-    setCuriosities((prev) => [newCuriosity, ...prev]);
+  const handleAddCuriosity = async (newCuriosity: CuriosityEssay) => {
+    setCuriosities((prev) => [newCuriosity, ...prev.filter((c) => c.id !== newCuriosity.id)]);
+    try {
+      await persistCuriosity(newCuriosity);
+    } catch (err) {
+      console.warn('Could not persist curiosity essay to cloud:', err);
+    }
   };
 
-  const handleDeleteCuriosity = (id: string) => {
+  const handleDeleteCuriosity = async (id: string) => {
     setCuriosities((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deleteCuriosityFromCloud(id);
+    } catch (err) {
+      console.warn('Could not delete curiosity from cloud:', err);
+    }
   };
 
-  const handleAddComputerArticle = (newArticle: ComputerArticle) => {
-    setComputerArticles((prev) => [newArticle, ...prev]);
+  const handleAddComputerArticle = async (newArticle: ComputerArticle) => {
+    setComputerArticles((prev) => [newArticle, ...prev.filter((a) => a.id !== newArticle.id)]);
+    try {
+      await persistComputerArticle(newArticle);
+    } catch (err) {
+      console.warn('Could not persist computer article to cloud:', err);
+    }
   };
 
-  const handleDeleteComputerArticle = (id: string) => {
+  const handleDeleteComputerArticle = async (id: string) => {
     setComputerArticles((prev) => prev.filter((a) => a.id !== id));
+    try {
+      await deleteComputerArticleFromCloud(id);
+    } catch (err) {
+      console.warn('Could not delete computer article from cloud:', err);
+    }
   };
 
-  const handleSaveNewDiaryPost = (newPost: DiaryPost) => {
-    setDiaryPosts((prev) => [newPost, ...prev]);
+  const handleSaveNewDiaryPost = async (newPost: DiaryPost) => {
+    setDiaryPosts((prev) => [newPost, ...prev.filter((p) => p.id !== newPost.id)]);
+    try {
+      await persistDiaryPost(newPost);
+    } catch (err) {
+      console.warn('Could not persist diary post to cloud:', err);
+    }
   };
 
-  const handleDeleteDiaryPost = (id: string) => {
+  const handleDeleteDiaryPost = async (id: string) => {
     setDiaryPosts((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deleteDiaryPostFromCloud(id);
+    } catch (err) {
+      console.warn('Could not delete diary post from cloud:', err);
+    }
   };
 
-  // Admin Authentication Actions (Password: "Mogul")
+  // Admin Authentication Actions
   const handleAdminLoginSuccess = () => {
     setIsAdmin(true);
     localStorage.setItem('markryan_is_admin', 'true');
     setActiveSection('admin');
   };
 
-  const handleAdminLogout = () => {
+  const handleAdminLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('Firebase sign out error:', e);
+    }
     setIsAdmin(false);
     localStorage.removeItem('markryan_is_admin');
     if (activeSection === 'admin') {
@@ -190,26 +348,87 @@ export default function App() {
     setIsCMSOpen(true);
   };
 
-  // Comments & Moderation Actions
-  const handleAddComment = (newComment: BlogComment) => {
-    setComments((prev) => [newComment, ...prev]);
+  // Comments & Moderation Actions (Realtime + Cloud Firestore)
+  const handleAddComment = async (newComment: BlogComment) => {
+    setComments((prev) => [newComment, ...prev.filter((c) => c.id !== newComment.id)]);
+    try {
+      await persistComment(newComment);
+    } catch (err) {
+      console.warn('Could not persist comment to cloud:', err);
+    }
   };
 
-  const handleUpdateCommentStatus = (commentId: string, status: 'approved' | 'pending' | 'flagged') => {
+  const handleUpdateCommentStatus = async (commentId: string, status: 'approved' | 'pending' | 'flagged') => {
     setComments((prev) =>
       prev.map((c) => (c.id === commentId ? { ...c, status } : c))
     );
+    try {
+      await updateCommentStatusInCloud(commentId, status);
+    } catch (err) {
+      console.warn('Could not update comment status in cloud:', err);
+    }
   };
 
-  const handleDeleteComment = (commentId: string) => {
+  const handleDeleteComment = async (commentId: string) => {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
+    try {
+      await deleteCommentFromCloud(commentId);
+    } catch (err) {
+      console.warn('Could not delete comment from cloud:', err);
+    }
+  };
+
+  // Start Over & Reset Website Handlers (Local + Firestore Synchronization)
+  const handleResetToDefaults = async () => {
+    setPoems(INITIAL_POEMS);
+    setCuriosities(INITIAL_CURIOSITIES);
+    setComputerArticles(INITIAL_COMPUTER_ARTICLES);
+    setDiaryPosts(INITIAL_DIARY_POSTS);
+    setComments(INITIAL_COMMENTS);
+    try {
+      localStorage.setItem('markryan_poems', JSON.stringify(INITIAL_POEMS));
+      localStorage.setItem('markryan_curiosities', JSON.stringify(INITIAL_CURIOSITIES));
+      localStorage.setItem('markryan_computer', JSON.stringify(INITIAL_COMPUTER_ARTICLES));
+      localStorage.setItem('markryan_diary', JSON.stringify(INITIAL_DIARY_POSTS));
+      localStorage.setItem('markryan_blog_comments', JSON.stringify(INITIAL_COMMENTS));
+      await resetCloudToDefaults();
+    } catch (e) {
+      console.warn('Error resetting to defaults:', e);
+    }
+  };
+
+  const handleStartFromScratch = async () => {
+    try {
+      await clearCloudContent(poems, curiosities, computerArticles, diaryPosts, comments);
+    } catch (e) {
+      console.warn('Error clearing cloud content:', e);
+    }
+    setPoems([]);
+    setCuriosities([]);
+    setComputerArticles([]);
+    setDiaryPosts([]);
+    setComments([]);
+    try {
+      localStorage.setItem('markryan_poems', JSON.stringify([]));
+      localStorage.setItem('markryan_curiosities', JSON.stringify([]));
+      localStorage.setItem('markryan_computer', JSON.stringify([]));
+      localStorage.setItem('markryan_diary', JSON.stringify([]));
+      localStorage.setItem('markryan_blog_comments', JSON.stringify([]));
+    } catch (e) {
+      console.warn('Error clearing localStorage:', e);
+    }
+  };
+
+  const handleClearMediaStorage = async () => {
+    await clearAllPersistentImages();
+    localStorage.removeItem('markryan_recent_uploads');
+    localStorage.removeItem('markryan_brand_avatar_data');
   };
 
   return (
     <ToastProvider>
       <div className="min-h-screen flex flex-col bg-[#f3f3f4] text-stone-900 selection:bg-[#722F37] selection:text-white font-sans">
-      {/* Global Navigation Header:
-          Fades out when in Diary Zen mode to achieve the fresh blank diary page requirement */}
+      {/* Global Navigation Header */}
       <Navigation
         activeSection={activeSection}
         onSelectSection={handleSelectSection}
@@ -221,12 +440,17 @@ export default function App() {
         isAdmin={isAdmin}
         onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
         onLogoutAdmin={handleAdminLogout}
+        onOpenStartOver={() => setIsStartOverOpen(true)}
       />
 
       {/* Main Architectural Content */}
       <div className="flex-1">
         {activeSection === 'poet' && (
-          <PoetSection poems={poems} />
+          <PoetSection
+            poems={poems}
+            isAdmin={isAdmin}
+            onDeletePoem={handleDeletePoem}
+          />
         )}
 
         {activeSection === 'curiosities' && (
@@ -234,11 +458,17 @@ export default function App() {
             essays={curiosities}
             activeEssayId={selectedCuriosityId}
             onSelectEssay={(id) => setSelectedCuriosityId(id)}
+            isAdmin={isAdmin}
+            onDeleteCuriosity={handleDeleteCuriosity}
           />
         )}
 
         {activeSection === 'computer' && (
-          <ComputerSection articles={computerArticles} />
+          <ComputerSection
+            articles={computerArticles}
+            isAdmin={isAdmin}
+            onDeleteComputerArticle={handleDeleteComputerArticle}
+          />
         )}
 
         {activeSection === 'diary' && (
@@ -275,6 +505,7 @@ export default function App() {
               onDeleteDiaryPost={handleDeleteDiaryPost}
               onUpdateCommentStatus={handleUpdateCommentStatus}
               onDeleteComment={handleDeleteComment}
+              onOpenStartOver={() => setIsStartOverOpen(true)}
             />
           ) : (
             <div className="max-w-md mx-auto py-24 px-4 text-center space-y-4">
@@ -395,6 +626,19 @@ export default function App() {
                   </>
                 )}
               </button>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsStartOverOpen(true)}
+                  className="text-stone-400 hover:text-red-400 transition-colors flex items-center gap-1 text-xs"
+                  title="Start Over / Reset Website Content & Media Storage"
+                  id="footer-start-over-btn"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-red-400" />
+                  <span>Start Over</span>
+                </button>
+              )}
             </div>
 
             {/* Global Social Links */}
@@ -491,6 +735,15 @@ export default function App() {
         isOpen={isAdminLoginOpen}
         onClose={() => setIsAdminLoginOpen(false)}
         onLoginSuccess={handleAdminLoginSuccess}
+      />
+
+      {/* Start Over & Reset Website Modal */}
+      <StartOverModal
+        isOpen={isStartOverOpen}
+        onClose={() => setIsStartOverOpen(false)}
+        onResetToDefaults={handleResetToDefaults}
+        onStartFromScratch={handleStartFromScratch}
+        onClearMediaStorage={handleClearMediaStorage}
       />
     </div>
   </ToastProvider>

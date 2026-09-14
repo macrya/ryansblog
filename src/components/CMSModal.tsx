@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Poem, CuriosityEssay, ComputerArticle, DiaryPost } from '../types';
 import { ImageUploader } from './ImageUploader';
+import { getAllStoredImages, deletePersistentImage, type StoredImageRecord } from '../utils/persistentStorage';
 import {
   X,
   UploadCloud,
@@ -13,6 +14,9 @@ import {
   Sparkles,
   Layers,
   FileCode,
+  Trash2,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface CMSModalProps {
@@ -35,10 +39,46 @@ export function CMSModal({
   onAddDiaryPost,
 }: CMSModalProps) {
   const [activeTab, setActiveTab] = useState<CMSTab>('media');
-  const [recentUploads, setRecentUploads] = useState<string[]>([
-    'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1200&q=85',
-  ]);
+  const [recentUploads, setRecentUploads] = useState<string[]>([]);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load persisted images from IndexedDB + localStorage on modal open
+    const loadStoredImages = async () => {
+      try {
+        const stored = await getAllStoredImages();
+        const urls = stored.map((item) => item.dataUrl);
+
+        // Also check localStorage
+        const savedJson = localStorage.getItem('markryan_recent_uploads');
+        if (savedJson) {
+          try {
+            const parsed = JSON.parse(savedJson);
+            if (Array.isArray(parsed)) {
+              for (const u of parsed) {
+                if (!urls.includes(u)) urls.push(u);
+              }
+            }
+          } catch (e) {
+            console.warn('Failed parsing markryan_recent_uploads:', e);
+          }
+        }
+
+        if (urls.length === 0) {
+          urls.push('https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1200&q=85');
+        }
+
+        setRecentUploads(urls);
+      } catch (err) {
+        console.warn('Could not load stored images:', err);
+      }
+    };
+
+    if (isOpen) {
+      loadStoredImages();
+    }
+  }, [isOpen]);
 
   // New Poem Form State
   const [poemTitle, setPoemTitle] = useState('');
@@ -67,9 +107,32 @@ export function CMSModal({
   if (!isOpen) return null;
 
   const handleUploadSuccess = (url: string) => {
-    setRecentUploads((prev) => [url, ...prev]);
-    setSuccessMessage('Asset successfully cropped (16:9) and uploaded via Vercel Blob pipeline.');
+    setRecentUploads((prev) => {
+      const next = [url, ...prev.filter((u) => u !== url)].slice(0, 30);
+      try {
+        localStorage.setItem('markryan_recent_uploads', JSON.stringify(next));
+      } catch (err) {
+        console.warn('LocalStorage full, image persisted in IndexedDB');
+      }
+      return next;
+    });
+    setSuccessMessage('Asset successfully cropped (16:9) and permanently stored in media storage.');
     setTimeout(() => setSuccessMessage(null), 4000);
+  };
+
+  const handleDeleteUploadedImage = async (urlToDelete: string) => {
+    await deletePersistentImage(urlToDelete);
+    setRecentUploads((prev) => {
+      const next = prev.filter((u) => u !== urlToDelete);
+      try {
+        localStorage.setItem('markryan_recent_uploads', JSON.stringify(next));
+      } catch (err) {
+        // ignore
+      }
+      return next;
+    });
+    setSuccessMessage('Asset removed from media gallery.');
+    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const handleCreatePoem = (e: React.FormEvent) => {
@@ -288,17 +351,37 @@ export function CMSModal({
                         key={i}
                         className="group relative aspect-video rounded-lg overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs"
                       >
-                        <img src={url} alt="Uploaded" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                        <img src={url} alt="Uploaded asset" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                           <button
                             type="button"
                             onClick={() => {
                               navigator.clipboard.writeText(url);
-                              alert('Image URL copied to clipboard!');
+                              setCopiedUrl(url);
+                              setTimeout(() => setCopiedUrl(null), 2000);
                             }}
-                            className="text-[10px] bg-white text-stone-900 px-2 py-1 rounded font-medium shadow-xs"
+                            className="text-[10px] bg-white hover:bg-stone-100 text-stone-900 px-2 py-1 rounded font-medium shadow-xs flex items-center gap-1 transition-colors"
                           >
-                            Copy Link
+                            {copiedUrl === url ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 text-stone-600" />
+                                <span>Copy Link</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUploadedImage(url)}
+                            title="Delete this image from storage"
+                            className="p-1 bg-red-600 hover:bg-red-700 text-white rounded shadow-xs transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

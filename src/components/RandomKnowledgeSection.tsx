@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 import type { CuriosityEssay } from '../types';
-import { Compass, Gauge, Cpu, Zap, Bookmark, Layers, ArrowUpRight, Search } from 'lucide-react';
+import { Compass, Gauge, Cpu, Zap, Bookmark, Layers, ArrowUpRight, Search, Trash2 } from 'lucide-react';
 
 interface RandomKnowledgeSectionProps {
   essays: CuriosityEssay[];
   activeEssayId?: string;
   onSelectEssay?: (id: string) => void;
+  isAdmin?: boolean;
+  onDeleteCuriosity?: (id: string) => void;
 }
 
 export function RandomKnowledgeSection({
   essays,
   activeEssayId,
   onSelectEssay,
+  isAdmin,
+  onDeleteCuriosity,
 }: RandomKnowledgeSectionProps) {
   const [selectedEssayId, setSelectedEssayId] = useState<string>(activeEssayId || essays[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -143,11 +147,33 @@ export function RandomKnowledgeSection({
               >
                 {/* Header with Pecita typography */}
                 <div className="border-b border-stone-200 pb-6">
-                  <div className="flex items-center gap-2 text-xs font-bricolage text-amber-900 mb-2">
-                    <Bookmark className="w-3.5 h-3.5" />
-                    <span>Dossier #{activeEssay.id} &middot; {activeEssay.category}</span>
-                    <span>&bull;</span>
-                    <span>{activeEssay.readTime}</span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 text-xs font-bricolage text-amber-900">
+                      <Bookmark className="w-3.5 h-3.5" />
+                      <span>Dossier #{activeEssay.id} &middot; {activeEssay.category}</span>
+                      <span>&bull;</span>
+                      <span>{activeEssay.readTime}</span>
+                    </div>
+
+                    {isAdmin && onDeleteCuriosity && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete "${activeEssay.title}"?`)) {
+                            onDeleteCuriosity(activeEssay.id);
+                            const remaining = essays.filter((e) => e.id !== activeEssay.id);
+                            if (remaining.length > 0) {
+                              setSelectedEssayId(remaining[0].id);
+                            }
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                        title="Delete this essay (Admin)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Dossier</span>
+                      </button>
+                    )}
                   </div>
 
                   <h2 className="font-pecita text-4xl sm:text-5xl text-stone-950 tracking-wide leading-tight mb-4">

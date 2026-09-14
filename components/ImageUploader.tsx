@@ -10,6 +10,7 @@ import ReactCrop, {
 import 'react-image-crop/dist/ReactCrop.css';
 import { upload } from '@vercel/blob/client';
 import { getCroppedImg } from '../utils/cropImage';
+import { savePersistentImage } from '../src/utils/persistentStorage';
 import {
   UploadCloud,
   CheckCircle2,
@@ -121,12 +122,19 @@ export function ImageUploader({
     setUploadProgress(15);
 
     try {
-      // 1. Generate cropped JPEG blob and File using HTML5 canvas utility
+      // 1. Generate cropped JPEG blob, canvas, and permanent Data URL
       const croppedImageResult = await getCroppedImg(
         imgSrc,
         completedCrop,
         `markryan-${Date.now()}-${originalFileName.replace(/\.[^/.]+$/, '')}.jpg`,
-        0.88
+        0.84
+      );
+
+      // Save to persistent storage engine (IndexedDB + DataURL)
+      const persistentRecord = await savePersistentImage(
+        croppedImageResult.canvas,
+        'crop16_9',
+        originalFileName
       );
 
       setUploadProgress(45);
@@ -134,7 +142,7 @@ export function ImageUploader({
       let finalUrl = '';
 
       try {
-        // 2. Direct client-side Vercel Blob upload
+        // 2. Direct client-side Vercel Blob upload (if configured in production)
         const newBlob = await upload(croppedImageResult.file.name, croppedImageResult.file, {
           access: 'public',
           handleUploadUrl: '/api/upload',
@@ -146,13 +154,9 @@ export function ImageUploader({
 
         finalUrl = newBlob.url;
       } catch (blobErr: any) {
-        console.warn('Vercel Blob remote upload error / unconfigured token:', blobErr);
-        // Fallback for offline/local development or unauthenticated preview:
-        // Use the generated local object URL so user workflow remains uninterrupted
-        finalUrl = croppedImageResult.url;
-        setErrorMessage(
-          'Notice: Vercel Blob token is not configured in this preview environment. The cropped image has been processed via HTML5 canvas and rendered locally.'
-        );
+        console.warn('Vercel Blob remote upload notice / local preview mode:', blobErr);
+        // Guaranteed fallback: persistent image storage that survives page refresh
+        finalUrl = persistentRecord.url;
       }
 
       setUploadProgress(100);

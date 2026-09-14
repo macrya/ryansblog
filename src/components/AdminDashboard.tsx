@@ -27,6 +27,8 @@ import {
   FileText,
   Clock,
   Eye,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { DateDisplay } from './DateDisplay';
 import { DeleteButton } from './DeleteButton';
@@ -47,6 +49,7 @@ interface AdminDashboardProps {
   onDeleteDiaryPost: (id: string) => void;
   onUpdateCommentStatus: (id: string, status: 'approved' | 'pending' | 'flagged') => void;
   onDeleteComment: (id: string) => void;
+  onOpenStartOver?: () => void;
 }
 
 export function AdminDashboard({
@@ -64,6 +67,7 @@ export function AdminDashboard({
   onDeleteDiaryPost,
   onUpdateCommentStatus,
   onDeleteComment,
+  onOpenStartOver,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'diary' | 'comments' | 'curiosities' | 'poems' | 'computer'>('overview');
   const [commentFilter, setCommentFilter] = useState<'all' | 'pending' | 'flagged' | 'approved'>('all');
@@ -92,11 +96,15 @@ export function AdminDashboard({
                   MarkRyan Admin Console
                 </h1>
                 <span className="px-2 py-0.5 rounded-full bg-[#722F37] text-stone-100 text-[10px] font-sans uppercase tracking-wider font-semibold">
-                  Mogul Auth
+                  Authorized Admin
+                </span>
+                <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-sans font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Cloud Firestore Active
                 </span>
               </div>
               <p className="text-[11px] text-stone-400">
-                Administrative Operations &middot; Content CMS &middot; Comment Moderation
+                Persistent CMS &middot; Real-time Multi-Device Sync &middot; Comment Moderation
               </p>
             </div>
           </div>
@@ -122,6 +130,19 @@ export function AdminDashboard({
               <Eye className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">View Public Site</span>
             </button>
+
+            {onOpenStartOver && (
+              <button
+                type="button"
+                onClick={onOpenStartOver}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-red-950/60 hover:text-red-200 text-stone-300 border border-stone-700 hover:border-red-800/60 rounded-lg text-xs font-medium transition-colors"
+                title="Start Over / Reset Website Content & Media Storage"
+                id="admin-start-over-btn"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-red-400" />
+                <span className="hidden sm:inline">Start Over</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -235,7 +256,7 @@ export function AdminDashboard({
                     Welcome back, MarkRyan.
                   </h2>
                   <p className="text-xs text-stone-500 max-w-xl">
-                    You are viewing the private administrative console. Click your profile avatar to update or replace your author photo at any time.
+                    All created and edited poems, curiosity essays, computer articles, and diary entries are permanently synchronized with Cloud Firestore. Your published content persists across deployments and devices.
                   </p>
                 </div>
               </div>
@@ -430,6 +451,34 @@ export function AdminDashboard({
                 </button>
               </div>
             </div>
+
+            {/* Danger Zone: Start Over & Reset Website */}
+            {onOpenStartOver && (
+              <div className="p-6 rounded-2xl bg-stone-900 text-stone-100 border border-stone-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-red-400 text-xs font-mono uppercase tracking-wider font-semibold">
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Website Maintenance &amp; Reset</span>
+                  </div>
+                  <h4 className="text-base font-semibold text-white">
+                    Start Over, Restore Curated Defaults, or Purge Image Cache
+                  </h4>
+                  <p className="text-xs text-stone-400 max-w-2xl leading-relaxed">
+                    Need a fresh canvas or want to restore the original MarkRyan portfolio? You can reset your content or purge local IndexedDB media storage at any time.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onOpenStartOver}
+                  className="px-4 py-2.5 bg-red-900/80 hover:bg-red-800 text-white rounded-xl text-xs font-medium border border-red-700/60 shadow-xs flex items-center gap-2 transition-colors shrink-0"
+                  id="admin-overview-start-over-btn"
+                >
+                  <RotateCcw className="w-4 h-4 text-red-300" />
+                  <span>Start Over / Reset Options</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 

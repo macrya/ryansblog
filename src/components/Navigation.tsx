@@ -18,6 +18,7 @@ import {
   Shield,
   Lock,
   LogOut,
+  RotateCcw,
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -31,6 +32,7 @@ interface NavigationProps {
   isAdmin: boolean;
   onOpenAdminLogin: () => void;
   onLogoutAdmin: () => void;
+  onOpenStartOver?: () => void;
 }
 
 export function Navigation({
@@ -44,6 +46,7 @@ export function Navigation({
   isAdmin,
   onOpenAdminLogin,
   onLogoutAdmin,
+  onOpenStartOver,
 }: NavigationProps) {
 
   // If in diary zen mode, render a very subtle, minimal watermark reveal button
@@ -273,6 +276,19 @@ export function Navigation({
                 <Shield className="w-3.5 h-3.5 text-[#722F37]" />
                 <span className="hidden md:inline">Console</span>
               </button>
+
+              {onOpenStartOver && (
+                <button
+                  type="button"
+                  onClick={onOpenStartOver}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-stone-700 hover:text-red-700 bg-stone-200/70 hover:bg-red-50 border border-stone-300/50 transition-colors"
+                  title="Start Over or Reset Website"
+                  id="header-start-over-btn"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-red-600" />
+                  <span className="hidden lg:inline">Start Over</span>
+                </button>
+              )}
 
               <button
                 type="button"
