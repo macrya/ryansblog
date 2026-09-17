@@ -24,7 +24,7 @@ export default function handler(
   const xml = generateRssFeed(INITIAL_DIARY_POSTS, baseUrl);
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   res.writeHead(200);
   res.end(xml);
 }

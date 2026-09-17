@@ -40,6 +40,7 @@ import {
   subscribeToComputerArticles,
   subscribeToDiaryPosts,
   subscribeToComments,
+  fetchDiaryPostsFromCloud,
   persistPoem,
   deletePoemFromCloud,
   persistCuriosity,
@@ -139,35 +140,36 @@ export default function App() {
     // Seed default portfolio documents if Firestore is initially empty
     seedInitialContentIfEmpty();
 
-    // Subscribe to live collections
+    // 1. Immediate direct server fetch to bypass any client disk cache
+    fetchDiaryPostsFromCloud(true)
+      .then((posts) => {
+        if (posts && posts.length > 0) {
+          setDiaryPosts(posts);
+        }
+      })
+      .catch((err) => {
+        console.warn('Initial server fetch for diary posts:', err);
+      });
+
+    // 2. Real-time continuous subscriptions across all devices and sessions
     const unsubPoems = subscribeToPoems((cloudPoems) => {
-      if (cloudPoems.length > 0) {
-        setPoems(cloudPoems);
-      }
+      setPoems(cloudPoems);
     });
 
     const unsubCuriosities = subscribeToCuriosities((cloudCuriosities) => {
-      if (cloudCuriosities.length > 0) {
-        setCuriosities(cloudCuriosities);
-      }
+      setCuriosities(cloudCuriosities);
     });
 
     const unsubArticles = subscribeToComputerArticles((cloudArticles) => {
-      if (cloudArticles.length > 0) {
-        setComputerArticles(cloudArticles);
-      }
+      setComputerArticles(cloudArticles);
     });
 
     const unsubDiary = subscribeToDiaryPosts((cloudPosts) => {
-      if (cloudPosts.length > 0) {
-        setDiaryPosts(cloudPosts);
-      }
+      setDiaryPosts(cloudPosts);
     });
 
     const unsubComments = subscribeToComments((cloudComments) => {
-      if (cloudComments.length > 0) {
-        setComments(cloudComments);
-      }
+      setComments(cloudComments);
     });
 
     return () => {

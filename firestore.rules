@@ -48,7 +48,7 @@ service cloud.firestore {
 
     // Diary Posts Collection
     match /diaryPosts/{postId} {
-      allow read: if resource.data.published == true || isAdmin();
+      allow read: if true;
       allow create, update, delete: if isAdmin();
     }
 

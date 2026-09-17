@@ -14,6 +14,8 @@ import {
   doc,
   getDoc,
   getDocFromServer,
+  getDocs,
+  getDocsFromServer,
   setDoc,
   deleteDoc,
   collection,
@@ -150,7 +152,10 @@ export function subscribeToComputerArticles(onUpdate: (articles: ComputerArticle
   );
 }
 
-export function subscribeToDiaryPosts(onUpdate: (posts: DiaryPost[]) => void) {
+export function subscribeToDiaryPosts(
+  onUpdate: (posts: DiaryPost[]) => void,
+  onError?: (err: Error) => void
+) {
   const colRef = collection(db, 'diaryPosts');
   return onSnapshot(
     colRef,
@@ -166,8 +171,26 @@ export function subscribeToDiaryPosts(onUpdate: (posts: DiaryPost[]) => void) {
     },
     (err) => {
       console.warn('Diary posts subscription error:', err);
+      if (onError) onError(err);
     }
   );
+}
+
+/**
+ * Direct runtime server fetch: forces server-side retrieval bypassing client disk cache
+ */
+export async function fetchDiaryPostsFromCloud(forceServer = true): Promise<DiaryPost[]> {
+  try {
+    const colRef = collection(db, 'diaryPosts');
+    const snapshot = forceServer ? await getDocsFromServer(colRef) : await getDocs(colRef);
+    if (snapshot.empty) return [];
+    const posts = snapshot.docs.map((d) => d.data() as DiaryPost);
+    posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return posts;
+  } catch (err) {
+    console.warn('Direct server fetch for diary posts fallback:', err);
+    return [];
+  }
 }
 
 export function subscribeToComments(onUpdate: (comments: BlogComment[]) => void) {
@@ -217,7 +240,12 @@ export async function deleteComputerArticleFromCloud(articleId: string): Promise
 }
 
 export async function persistDiaryPost(post: DiaryPost): Promise<void> {
-  await setDoc(doc(db, 'diaryPosts', post.id), post, { merge: true });
+  const record: DiaryPost = {
+    ...post,
+    published: post.published !== false,
+    updatedAt: new Date().toISOString(),
+  };
+  await setDoc(doc(db, 'diaryPosts', post.id), record, { merge: true });
 }
 
 export async function deleteDiaryPostFromCloud(postId: string): Promise<void> {
@@ -268,7 +296,7 @@ export async function seedInitialContentIfEmpty(): Promise<boolean> {
     }
     // Seed Diary Posts
     for (const post of INITIAL_DIARY_POSTS) {
-      batch.set(doc(db, 'diaryPosts', post.id), post);
+      batch.set(doc(db, 'diaryPosts', post.id), { ...post, published: true });
     }
     // Seed Comments
     for (const comment of INITIAL_COMMENTS) {
@@ -304,7 +332,7 @@ export async function resetCloudToDefaults(): Promise<void> {
     batch.set(doc(db, 'computerArticles', art.id), art);
   }
   for (const post of INITIAL_DIARY_POSTS) {
-    batch.set(doc(db, 'diaryPosts', post.id), post);
+    batch.set(doc(db, 'diaryPosts', post.id), { ...post, published: true });
   }
   for (const comment of INITIAL_COMMENTS) {
     batch.set(doc(db, 'comments', comment.id), comment);

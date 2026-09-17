@@ -88,6 +88,9 @@ export function DiarySection({
       content: draftContent.trim(),
       imageUrl: draftImageUrl || undefined,
       imageCaption: draftCaption.trim() || undefined,
+      published: true,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
     };
 
     onSaveNewPost(newPost);

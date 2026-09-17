@@ -59,6 +59,9 @@ export interface DiaryPost {
   mood?: string;
   weather?: string;
   location?: string;
+  published?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BlogComment {

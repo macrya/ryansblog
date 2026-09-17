@@ -308,6 +308,7 @@ export const INITIAL_DIARY_POSTS: DiaryPost[] = [
     mood: 'Contemplative & Quiet',
     imageUrl: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1200&q=85',
     imageCaption: 'Morning cedar light through the studio frame — 16:9 crop via Vercel Blob.',
+    published: true,
     content: `The house is completely dark except for the single phosphor glow of the monitor. Outside, the rain is beating against the glass with that rhythmic, metallic hiss that makes every clock in the room feel unnecessary.
 
 I spent six hours today debugging an asynchronous race condition in the graph correlation crawler. At 11 PM, I found the culprit: a missing mutex lock on the socket buffer that only failed when Tor switched circuit relays during heavy TLS handshakes. A single line of code fixed it. And yet, when the build turned green, there was no triumphant burst of adrenaline—just that strange, peaceful melancholy of finishing something intricate.
@@ -322,6 +323,7 @@ Why do we write? To prove to the void that we were here on a Monday night in Sep
     location: 'Library Corner',
     weather: 'Cool Breeze, Clear Sky',
     mood: 'Philosophical',
+    published: true,
     content: `Re-read White Nights this evening. What strikes me is how unhurried the heartbreak is. The characters walk along the Neva for hours, exchanging paragraphs that would take twenty text messages today to butcher.
 
 In our era of fiber optics and millisecond latency, we have abolished distance, but we have also abolished the fertile silence where desire and contemplation actually incubate. Everything is answered before the question has even settled into the chest.
