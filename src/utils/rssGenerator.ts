@@ -23,6 +23,9 @@ export function generateRssFeed(posts: DiaryPost[], baseUrl: string = 'https://m
       const postUrl = `${baseUrl}/#diary-${post.id}`;
       const description = post.content.length > 320 ? `${post.content.slice(0, 320)}...` : post.content;
 
+      // Prevent CDATA breakout injection
+      const safeDescription = description.replace(/]]>/g, ']]]]><![CDATA[>');
+
       const mediaEnclosure = post.imageUrl
         ? `\n      <enclosure url="${escapeXml(post.imageUrl)}" type="image/jpeg" length="0" />`
         : '';
@@ -32,7 +35,7 @@ export function generateRssFeed(posts: DiaryPost[], baseUrl: string = 'https://m
       <link>${escapeXml(postUrl)}</link>
       <guid isPermaLink="false">${escapeXml(post.id)}</guid>
       <pubDate>${pubDate}</pubDate>
-      <description><![CDATA[${description}]]></description>${mediaEnclosure}
+      <description><![CDATA[${safeDescription}]]></description>${mediaEnclosure}
     </item>`;
     })
     .join('\n');

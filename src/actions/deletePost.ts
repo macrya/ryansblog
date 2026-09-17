@@ -5,7 +5,7 @@ import { del } from '@vercel/blob';
 export interface DeletePostInput {
   /** The unique ID of the post to delete */
   postId: string;
-  /** Admin authorization token or password ('Mogul') */
+  /** Admin authorization token or password */
   adminSecret?: string;
   /** Optional direct image URL to delete from Vercel Blob if already known */
   imageUrl?: string;
@@ -19,21 +19,35 @@ export interface DeletePostResult {
   error?: string;
 }
 
-/**
- * Expected administrator password configured for MarkRyan blog
- */
-const ADMIN_PASSCODE = process.env.ADMIN_PASSWORD || 'Mogul';
+import crypto from 'node:crypto';
 
 /**
- * Helper to determine if a URL belongs to Vercel Blob storage
+ * Constant-time comparison
  */
-function isVercelBlobUrl(url: string | undefined | null): boolean {
-  if (!url) return false;
-  return (
-    url.includes('blob.vercel-storage.com') ||
-    url.includes('vercel-storage.com') ||
-    url.startsWith('blob:')
-  );
+function safeEqual(a: string | undefined | null, b: string | undefined | null): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+/**
+ * Helper to determine if a URL strictly belongs to Vercel Blob storage
+ */
+function isSafeVercelBlobUrl(url: string | undefined | null): boolean {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return false;
+    const host = parsed.hostname.toLowerCase();
+    return (
+      host === 'blob.vercel-storage.com' ||
+      host.endsWith('.vercel-storage.com') ||
+      host.endsWith('.public.blob.vercel-storage.com')
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -60,17 +74,15 @@ export async function deletePost(
     };
   }
 
-  // 1. Authorization Check
-  // In Next.js App Router, this checks incoming adminSecret, authorization headers, or auth cookies.
+  // 1. Authorization Check — strictly requires valid admin secret
+  const expectedPassword = process.env.ADMIN_PASSWORD;
   const isAuthorized =
-    adminSecret === ADMIN_PASSCODE ||
-    process.env.NODE_ENV === 'development' ||
-    (typeof window === 'undefined' && !adminSecret); // Allow server-internal invocations with session
+    Boolean(expectedPassword && adminSecret && safeEqual(adminSecret, expectedPassword));
 
   if (!isAuthorized) {
     return {
       success: false,
-      message: 'Unauthorized: Invalid administrator credentials.',
+      message: 'Unauthorized: Valid administrator credentials required.',
       error: 'UNAUTHORIZED',
     };
   }
@@ -80,7 +92,7 @@ export async function deletePost(
   try {
     // 2. Vercel Blob Cleanup
     // If the post contains a Vercel Blob URL, delete it to prevent orphaned assets
-    if (imageUrl && isVercelBlobUrl(imageUrl)) {
+    if (imageUrl && isSafeVercelBlobUrl(imageUrl)) {
       try {
         await del(imageUrl);
         blobDeleted = true;

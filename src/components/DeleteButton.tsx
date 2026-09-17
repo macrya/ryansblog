@@ -12,7 +12,7 @@ export interface DeleteButtonProps {
   postTitle?: string;
   /** Optional URL of the header image in Vercel Blob to purge */
   imageUrl?: string;
-  /** Admin authorization token/password (defaults to localStorage or 'Mogul') */
+  /** Admin authorization token/password */
   adminSecret?: string;
   /** Callback fired after successful deletion */
   onDeleted?: (postId: string) => void;
@@ -54,8 +54,8 @@ export function DeleteButton({
         const effectiveSecret =
           adminSecret ||
           (typeof window !== 'undefined'
-            ? localStorage.getItem('markryan_admin_secret') || 'Mogul'
-            : 'Mogul');
+            ? sessionStorage.getItem('markryan_admin_token') || ''
+            : '');
 
         let result: DeletePostResult;
 
@@ -69,9 +69,14 @@ export function DeleteButton({
         } catch (actionErr) {
           console.warn('[DeleteButton] Server action not available, attempting REST API fallback:', actionErr);
           // Fallback to Vercel Serverless Function endpoint /api/delete-post
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (effectiveSecret) {
+            headers['Authorization'] = `Bearer ${effectiveSecret}`;
+          }
+
           const response = await fetch('/api/delete-post', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
               postId,
               adminSecret: effectiveSecret,

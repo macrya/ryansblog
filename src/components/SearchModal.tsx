@@ -305,10 +305,9 @@ export function SearchModal({
                       >
                         {item.sectionLabel}
                       </span>
-                      <span
-                        className="text-stone-400"
-                        dangerouslySetInnerHTML={{ __html: item.dateOrCategory }}
-                      />
+                      <span className="text-stone-400">
+                        {item.dateOrCategory.replace(/&middot;/g, '·')}
+                      </span>
                     </div>
 
                     <h4 className="text-sm font-semibold text-stone-900 group-hover:text-[#722F37] transition-colors leading-snug">

@@ -83,7 +83,10 @@ export default function App() {
   const [isRSSOpen, setIsRSSOpen] = useState<boolean>(false);
   const [selectedCuriosityId, setSelectedCuriosityId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem('markryan_is_admin') === 'true';
+    if (typeof window !== 'undefined') {
+      return Boolean(sessionStorage.getItem('markryan_admin_token'));
+    }
+    return false;
   });
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState<boolean>(false);
   const [isStartOverOpen, setIsStartOverOpen] = useState<boolean>(false);
@@ -115,20 +118,17 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_COMMENTS;
   });
 
-  // 1. Firebase Authentication Listener (Persistent Auth State)
+  // 1. Firebase Authentication Listener (Verified Server State)
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const isPrivileged = await verifyUserIsAdmin(user);
         setIsAdmin(isPrivileged);
-        if (isPrivileged) {
-          localStorage.setItem('markryan_is_admin', 'true');
-        } else {
-          localStorage.removeItem('markryan_is_admin');
-        }
       } else {
-        const savedIsAdmin = localStorage.getItem('markryan_is_admin') === 'true';
-        setIsAdmin(savedIsAdmin);
+        const hasSessionToken =
+          typeof window !== 'undefined' &&
+          Boolean(sessionStorage.getItem('markryan_admin_token'));
+        setIsAdmin(hasSessionToken);
       }
     });
 
@@ -325,7 +325,6 @@ export default function App() {
   // Admin Authentication Actions
   const handleAdminLoginSuccess = () => {
     setIsAdmin(true);
-    localStorage.setItem('markryan_is_admin', 'true');
     setActiveSection('admin');
   };
 
@@ -335,8 +334,9 @@ export default function App() {
     } catch (e) {
       console.warn('Firebase sign out error:', e);
     }
-    setIsAdmin(false);
+    sessionStorage.removeItem('markryan_admin_token');
     localStorage.removeItem('markryan_is_admin');
+    setIsAdmin(false);
     if (activeSection === 'admin') {
       setActiveSection('poet');
     }
@@ -524,7 +524,7 @@ export default function App() {
                 className="px-5 py-2.5 bg-[#722F37] hover:bg-[#581c24] text-white text-xs font-medium rounded-xl shadow-xs transition-colors"
                 id="enter-admin-passcode-btn"
               >
-                Enter Admin Passcode (Mogul)
+                Enter Admin Passcode
               </button>
             </div>
           )
@@ -613,7 +613,7 @@ export default function App() {
                     ? 'text-amber-300 hover:text-amber-200 font-medium'
                     : 'text-stone-400 hover:text-stone-200'
                 }`}
-                title={isAdmin ? "Go to Admins Dashboard" : "Admin Login (Password: Mogul)"}
+                title={isAdmin ? "Go to Admins Dashboard" : "Admin Login"}
                 id="footer-admin-btn"
               >
                 {isAdmin ? (
@@ -732,7 +732,7 @@ export default function App() {
         onAddDiaryPost={handleSaveNewDiaryPost}
       />
 
-      {/* Admin Authentication Modal (Password: Mogul) */}
+      {/* Admin Authentication Modal */}
       <AdminLoginModal
         isOpen={isAdminLoginOpen}
         onClose={() => setIsAdminLoginOpen(false)}

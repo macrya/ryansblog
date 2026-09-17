@@ -143,7 +143,7 @@ export function DiarySection({
                 ? 'bg-stone-800 text-stone-100 font-medium'
                 : 'text-stone-500 hover:text-stone-900'
             }`}
-            title={isAdmin ? "Compose new diary entry" : "Administrator Only (Password: Mogul)"}
+            title={isAdmin ? "Compose new diary entry" : "Administrator Only"}
             id="write-diary-btn"
           >
             <span className="flex items-center gap-1.5">

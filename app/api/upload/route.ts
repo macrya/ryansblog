@@ -1,29 +1,32 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+
+function isSafePathname(pathname: string): boolean {
+  if (!pathname || typeof pathname !== 'string') return false;
+  if (pathname.length > 255) return false;
+  if (pathname.includes('..') || pathname.includes('\\') || pathname.includes('\0')) return false;
+  const lower = pathname.toLowerCase();
+  return ALLOWED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
 /**
  * Next.js App Router API Route for Vercel Blob client uploads.
- * Issues client upload tokens with custom authentication and authorization guards.
+ * Issues client upload tokens with strict pathname validation and size constraints.
  *
  * Endpoint: POST /api/upload
  */
 export async function POST(request: Request): Promise<Response> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
+    const body = (await request.json()) as HandleUploadBody;
+
     const jsonResponse = await handleUpload({
       body,
       request,
       onBeforeGenerateToken: async (pathname: string, clientPayload: string | null) => {
-        // ------------------------------------------------------------------
-        // Placeholder Authorization Logic:
-        // Authenticate the incoming request (e.g. cookie session or Bearer token)
-        // ------------------------------------------------------------------
-        const authorization = request.headers.get('authorization');
-
-        // Example authorization check (uncomment in production if needed):
-        // if (!authorization || authorization !== `Bearer ${process.env.ADMIN_SECRET_KEY}`) {
-        //   throw new Error('Unauthorized: Valid credentials required to upload assets');
-        // }
+        if (!isSafePathname(pathname)) {
+          throw new Error('Invalid upload filename or extension. Permitted: JPG, PNG, WEBP, GIF, AVIF.');
+        }
 
         return {
           allowedContentTypes: [
@@ -35,32 +38,21 @@ export async function POST(request: Request): Promise<Response> {
           ],
           maximumSizeInBytes: 15 * 1024 * 1024, // 15MB limit
           tokenPayload: JSON.stringify({
-            owner: 'MarkRyan — Creative Developer & Technical Architect',
+            owner: 'MarkRyan Creative CMS',
             path: pathname,
             clientPayload: clientPayload || null,
             authorizedAt: new Date().toISOString(),
           }),
         };
       },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // ------------------------------------------------------------------
-        // Webhook hook invoked by Vercel after the file is successfully uploaded
-        // ------------------------------------------------------------------
-        console.log('[Vercel Blob] Upload completed:', blob.url);
-        if (tokenPayload) {
-          try {
-            const parsed = JSON.parse(tokenPayload);
-            console.log('[Vercel Blob] Upload metadata:', parsed);
-          } catch {
-            // ignore JSON parse error
-          }
-        }
+      onUploadCompleted: async ({ blob }) => {
+        console.log('[Vercel Blob] Upload completed successfully:', blob.url);
       },
     });
 
     return Response.json(jsonResponse);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error during upload';
-    return Response.json({ error: message }, { status: 400 });
+    return Response.json({ success: false, error: 'UPLOAD_ERROR', message }, { status: 400 });
   }
 }

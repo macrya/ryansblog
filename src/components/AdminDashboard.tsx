@@ -382,7 +382,9 @@ export function AdminDashboard({
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2 font-medium text-stone-900">
                           <span>{comm.authorName}</span>
-                          <span className="text-[10px] text-stone-400" dangerouslySetInnerHTML={{ __html: comm.createdAt }} />
+                          <span className="text-[10px] text-stone-400">
+                            {comm.createdAt.replace(/&middot;/g, '·')}
+                          </span>
                         </div>
                         <p className="text-stone-700 italic font-comic">&ldquo;{comm.content}&rdquo;</p>
                       </div>
@@ -630,7 +632,9 @@ export function AdminDashboard({
                         >
                           {comm.status}
                         </span>
-                        <span className="text-[11px] text-stone-400" dangerouslySetInnerHTML={{ __html: comm.createdAt }} />
+                        <span className="text-[11px] text-stone-400">
+                          {comm.createdAt.replace(/&middot;/g, '·')}
+                        </span>
                       </div>
 
                       <p className="text-xs font-comic text-stone-800 leading-relaxed whitespace-pre-wrap">

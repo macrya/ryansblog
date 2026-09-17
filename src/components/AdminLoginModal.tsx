@@ -35,40 +35,37 @@ export function AdminLoginModal({
 
   if (!isOpen) return null;
 
-  // Passcode verification ("Mogul") backed by Firebase Auth
+  // Passcode verification validated securely via serverless API
   const handlePasscodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (passcode.trim() !== 'Mogul') {
-      setError('Access denied: Invalid administrator passcode.');
+    if (!passcode.trim()) {
+      setError('Please enter the administrator passcode.');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Establish an authenticated Firebase session for the administrator
-      const adminEmail = SUPERADMIN_EMAIL;
-      const adminPass = 'MarkRyanMogul2026!';
+      const res = await fetch('/api/verify-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ passcode: passcode.trim() }),
+      });
 
-      try {
-        await signInWithEmailAndPassword(auth, adminEmail, adminPass);
-      } catch (authErr: any) {
-        if (authErr?.code === 'auth/user-not-found' || authErr?.code === 'auth/invalid-credential') {
-          // If first time, provision admin account
-          try {
-            await createUserWithEmailAndPassword(auth, adminEmail, adminPass);
-          } catch {
-            // Fallback: sign in anonymously and claim admin role
-            await signInAnonymously(auth);
-          }
-        } else {
-          // Fallback to anonymous authenticated session with admin privilege
-          await signInAnonymously(auth);
-        }
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setError(data.message || 'Access denied: Invalid administrator passcode.');
+        return;
       }
 
-      await verifyUserIsAdmin(auth.currentUser);
+      // Store server-issued short-lived HMAC token in sessionStorage (ephemeral, not persistent)
+      if (data.adminToken) {
+        sessionStorage.setItem('markryan_admin_token', data.adminToken);
+      }
 
       setIsSuccess(true);
       setTimeout(() => {
@@ -78,15 +75,8 @@ export function AdminLoginModal({
         onClose();
       }, 500);
     } catch (err: any) {
-      console.warn('Firebase Auth session warning:', err);
-      // Still allow admin unlock if passcode matched
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        setPasscode('');
-        onLoginSuccess();
-        onClose();
-      }, 500);
+      console.error('Server passcode verification error:', err);
+      setError('Could not reach authorization server. Please try again.');
     } finally {
       setIsLoading(false);
     }

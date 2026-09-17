@@ -305,7 +305,7 @@ export function Navigation({
               type="button"
               onClick={onOpenAdminLogin}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-200/80 hover:bg-stone-300/80 text-stone-700 hover:text-stone-900 rounded-lg text-xs font-medium transition-colors border border-stone-300/60"
-              title="Administrator Portal Login (Password: Mogul)"
+              title="Administrator Portal Login"
               id="open-admin-login-btn"
             >
               <Lock className="w-3.5 h-3.5 text-stone-500" />

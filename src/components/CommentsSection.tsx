@@ -79,17 +79,16 @@ export function CommentsSection({
       minute: '2-digit',
     });
 
-    const isMark = authorName.trim().toLowerCase() === 'markryan' || authorName.trim().toLowerCase() === 'mark';
-
+    // Only grant admin badge and instant approval if actually authenticated as admin
     const newComment: BlogComment = {
-      id: `comm-${Date.now()}`,
+      id: `comm-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       postId,
       authorName: authorName.trim(),
       authorEmail: authorEmail.trim() || undefined,
       content: commentText.trim(),
-      createdAt: `${formattedDate} &middot; ${formattedTime}`,
-      status: 'approved', // default approved, editable via moderation
-      isAdmin: isMark,
+      createdAt: `${formattedDate} · ${formattedTime}`,
+      status: isAdmin ? 'approved' : 'pending',
+      isAdmin: Boolean(isAdmin),
     };
 
     onAddComment(newComment);
@@ -120,7 +119,7 @@ export function CommentsSection({
                 ? 'bg-[#722F37] text-white font-medium shadow-xs'
                 : 'bg-stone-200/70 hover:bg-stone-300/70 text-stone-700'
             }`}
-            title={isAdmin ? "Toggle Moderator Controls" : "Restricted to Administrator (Password: Mogul)"}
+            title={isAdmin ? "Toggle Moderator Controls" : "Restricted to Administrator"}
             id="moderator-mode-toggle"
           >
             <Shield className="w-3.5 h-3.5" />
@@ -216,10 +215,9 @@ export function CommentsSection({
                         </span>
                       )}
                     </div>
-                    <span
-                      className="text-[11px] text-stone-400 font-sans block"
-                      dangerouslySetInnerHTML={{ __html: comment.createdAt }}
-                    />
+                    <span className="text-[11px] text-stone-400 font-sans block">
+                      {comment.createdAt.replace(/&middot;/g, '·')}
+                    </span>
                   </div>
                 </div>
 
