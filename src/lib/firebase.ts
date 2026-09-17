@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -47,6 +48,21 @@ export const googleProvider = new GoogleAuthProvider();
 export const db: Firestore = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
+
+// Initialize Firebase App Check if recaptcha site key is provided
+if (typeof window !== 'undefined') {
+  const recaptchaKey = (firebaseConfig as any).recaptchaSiteKey || ((import.meta as any).env?.VITE_RECAPTCHA_SITE_KEY);
+  if (recaptchaKey && recaptchaKey.trim().length > 0) {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(recaptchaKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (appCheckErr) {
+      console.warn('App Check initialization notice:', appCheckErr);
+    }
+  }
+}
 
 // 4. Test connection on boot as mandated by Firebase specification
 async function testFirestoreConnection() {

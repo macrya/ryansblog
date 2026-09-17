@@ -92,6 +92,7 @@ test('6. Secret Scanning Regression Guard: No hardcoded secrets in source files'
     path.resolve(process.cwd(), 'src/actions/deletePost.ts'),
     path.resolve(process.cwd(), 'api/delete-post.ts'),
     path.resolve(process.cwd(), '.env.example'),
+    path.resolve(process.cwd(), 'README.md'),
   ];
 
   for (const file of filesToCheck) {

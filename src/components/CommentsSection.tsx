@@ -35,8 +35,10 @@ export function CommentsSection({
   const [authorName, setAuthorName] = useState<string>('');
   const [authorEmail, setAuthorEmail] = useState<string>('');
   const [commentText, setCommentText] = useState<string>('');
+  const [honeypot, setHoneypot] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedFeedback, setSubmittedFeedback] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string>('');
 
   // Moderation state
   const [isModeratorMode, setIsModeratorMode] = useState<boolean>(false);
@@ -64,7 +66,44 @@ export function CommentsSection({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commentText.trim() || !authorName.trim()) return;
+    setSubmitError('');
+
+    // 1. Anti-spam Honeypot Check (silent drop if bot filled the hidden trap)
+    if (honeypot.trim().length > 0) {
+      console.warn('Spam bot honeypot triggered on comment submission.');
+      setSubmittedFeedback(true);
+      setTimeout(() => setSubmittedFeedback(false), 3000);
+      return;
+    }
+
+    // 2. Client-side Rate Limiting (max 3 comments per 60 seconds per browser)
+    try {
+      const nowMs = Date.now();
+      const rawTimestamps = sessionStorage.getItem('markryan_comment_timestamps');
+      const timestamps: number[] = rawTimestamps ? JSON.parse(rawTimestamps) : [];
+      const recentTimestamps = timestamps.filter((t) => nowMs - t < 60000);
+
+      if (recentTimestamps.length >= 3) {
+        setSubmitError('Rate limit reached: Please pause a moment before sending another reflection.');
+        return;
+      }
+
+      recentTimestamps.push(nowMs);
+      sessionStorage.setItem('markryan_comment_timestamps', JSON.stringify(recentTimestamps));
+    } catch {
+      // sessionStorage unavailable
+    }
+
+    // 3. Validation
+    if (!commentText.trim() || !authorName.trim()) {
+      setSubmitError('Please provide both your name and reflection content.');
+      return;
+    }
+
+    if (commentText.trim().length > 2000) {
+      setSubmitError('Comment is too long (maximum 2,000 characters).');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -91,11 +130,16 @@ export function CommentsSection({
       isAdmin: Boolean(isAdmin),
     };
 
-    onAddComment(newComment);
-    setCommentText('');
-    setIsSubmitting(false);
-    setSubmittedFeedback(true);
-    setTimeout(() => setSubmittedFeedback(false), 3500);
+    try {
+      onAddComment(newComment);
+      setCommentText('');
+      setSubmittedFeedback(true);
+      setTimeout(() => setSubmittedFeedback(false), 3500);
+    } catch (err: any) {
+      setSubmitError(err?.message || 'Could not post comment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -275,6 +319,30 @@ export function CommentsSection({
           <User className="w-3.5 h-3.5 text-[#722F37]" />
           <span>Leave a Reflection or Letter</span>
         </div>
+
+        {/* Anti-Spam Honeypot Field (invisible to genuine users, traps automated bots) */}
+        <div
+          aria-hidden="true"
+          style={{ display: 'none', position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}
+        >
+          <label htmlFor="hp_comment_website">Leave this field empty</label>
+          <input
+            type="text"
+            id="hp_comment_website"
+            name="hp_comment_website"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
+
+        {submitError && (
+          <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-xs flex items-center gap-2 animate-fade-in">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{submitError}</span>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>

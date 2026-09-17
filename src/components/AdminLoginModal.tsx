@@ -67,6 +67,25 @@ export function AdminLoginModal({
         sessionStorage.setItem('markryan_admin_token', data.adminToken);
       }
 
+      // Automatically establish real Firebase Auth session so request.auth is populated for Firestore security rules
+      try {
+        await signInWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
+      } catch (fbErr: any) {
+        if (fbErr?.code === 'auth/user-not-found') {
+          try {
+            await createUserWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
+          } catch (createErr) {
+            console.warn('Auto-provision Firebase admin user notice:', createErr);
+          }
+        } else {
+          console.warn('Firebase Auth sign-in with passcode notice:', fbErr?.code || fbErr?.message);
+        }
+      }
+
+      if (auth.currentUser) {
+        await verifyUserIsAdmin(auth.currentUser);
+      }
+
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);

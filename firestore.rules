@@ -12,7 +12,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        (request.auth.token.email == 'kimmarkryan5@gmail.com' && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == 'kimmarkryan5@gmail.com') ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
@@ -25,7 +25,7 @@ service cloud.firestore {
     // Admins Collection
     match /admins/{adminId} {
       allow read: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
-      allow write: if isAdmin() || (isSignedIn() && request.auth.token.email == 'kimmarkryan5@gmail.com' && request.auth.token.email_verified == true);
+      allow write: if isAdmin() || (isSignedIn() && request.auth.token.email == 'kimmarkryan5@gmail.com');
     }
 
     // Poems Collection

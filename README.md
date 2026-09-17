@@ -5,9 +5,16 @@ A production-ready personal website, portfolio, and diary blog CMS featuring:
 - **Curiosities / Random Knowledge**: Architecture and engineering essays with read-time estimators and interactive search.
 - **Computer Stuff**: Technical architectural case studies and distributed systems writing.
 - **The Diary Page**: Zen mode with blank, unlined page aesthetic, threaded comments, and moderation.
-- **Admins Page & CMS Studio**: Protected by admin password (`Mogul`), featuring a 16:9 canvas crop tool, direct-to-blob upload pipeline via `@vercel/blob`, and secure post deletion with orphan asset cleanup.
+- **Admins Page & CMS Studio**: Protected by Firebase Authentication (and optionally configured `ADMIN_PASSWORD` environment variable), featuring a 16:9 canvas crop tool, direct-to-blob upload pipeline via `@vercel/blob`, and secure post deletion with orphan asset cleanup.
 - **Accurate Date Handling**: Localized, hydration-safe date display with semantic HTML5 `<time>` tags.
 - **Syndication**: Auto-generated `/rss.xml` feed with Edge CDN caching headers.
+
+---
+
+## Canonical Deployment
+
+The canonical production URL is:
+**https://ryansblog-u3o9.vercel.app**
 
 ---
 
@@ -43,8 +50,8 @@ For 16:9 header image uploads and automatic deletion via `del()`:
 | Variable | Description | Default |
 |---|---|---|
 | `BLOB_READ_WRITE_TOKEN` | Read/write token for Vercel Blob storage | (Auto-populated by Vercel) |
-| `ADMIN_PASSWORD` | Passcode to access Admin Dashboard & CMS | `Mogul` |
-| `APP_URL` | Canonical public URL (e.g. `https://your-domain.vercel.app`) | (Auto-derived or set manually) |
+| `ADMIN_PASSWORD` | Passcode to access Admin Dashboard & CMS | (Set in Vercel environment variables) |
+| `APP_URL` | Canonical public URL | `https://ryansblog-u3o9.vercel.app` |
 
 ---
 
@@ -52,7 +59,7 @@ For 16:9 header image uploads and automatic deletion via `del()`:
 
 - `vercel.json`: Defines Vite build output (`dist`), client-side SPA routing (`/((?!api/).*)` -> `/index.html`), security headers, and asset caching.
 - `api/upload.ts`: Vercel Serverless Function handling client token authorization via `handleUpload()` from `@vercel/blob/client`.
-- `api/delete-post.ts`: Vercel Serverless Function authorizing admin password (`Mogul`) and invoking `@vercel/blob`'s `del()` method.
+- `api/delete-post.ts`: Vercel Serverless Function authorizing admin credentials (via `ADMIN_PASSWORD` or HMAC bearer token) and invoking `@vercel/blob`'s `del()` method.
 - `api/rss.ts`: Serverless endpoint serving `/rss.xml` with XML headers and Edge caching.
 - `api/health.ts`: Health check endpoint.
 - `src/lib/dateUtils.ts`: Deterministic date formatting using native `Intl.DateTimeFormat`.

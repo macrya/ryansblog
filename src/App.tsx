@@ -30,7 +30,7 @@ import { RSSModal } from './components/RSSModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { StartOverModal } from './components/StartOverModal';
-import { ToastProvider } from './components/Toast';
+import { ToastProvider, useToast } from './components/Toast';
 import { clearAllPersistentImages } from './utils/persistentStorage';
 import {
   auth,
@@ -76,6 +76,15 @@ import {
 } from 'lucide-react';
 
 export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+    </ToastProvider>
+  );
+}
+
+function AppInner() {
+  const { showToast } = useToast();
   const [activeSection, setActiveSection] = useState<ActiveSection>('poet');
   const [isDiaryZenMode, setIsDiaryZenMode] = useState<boolean>(false);
   const [isCMSOpen, setIsCMSOpen] = useState<boolean>(false);
@@ -251,74 +260,130 @@ export default function App() {
 
   // CMS Content Additions & Deletions (Realtime Local + Persistent Cloud Firestore)
   const handleAddPoem = async (newPoem: Poem) => {
-    setPoems((prev) => [newPoem, ...prev.filter((p) => p.id !== newPoem.id)]);
     try {
       await persistPoem(newPoem);
-    } catch (err) {
-      console.warn('Could not persist poem to cloud:', err);
+      setPoems((prev) => [newPoem, ...prev.filter((p) => p.id !== newPoem.id)]);
+      showToast(`Poem "${newPoem.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
+    } catch (err: any) {
+      console.error('Could not persist poem to cloud:', err);
+      const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
+      showToast(
+        isAuthIssue
+          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
+          : (err?.message || 'Failed to persist poem to cloud storage.'),
+        'error',
+        'Persistence Error'
+      );
+      if (isAuthIssue) {
+        setIsAdminLoginOpen(true);
+      }
     }
   };
 
   const handleDeletePoem = async (id: string) => {
-    setPoems((prev) => prev.filter((p) => p.id !== id));
     try {
       await deletePoemFromCloud(id);
-    } catch (err) {
-      console.warn('Could not delete poem from cloud:', err);
+      setPoems((prev) => prev.filter((p) => p.id !== id));
+      showToast('Poem deleted from Cloud Firestore.', 'info', 'Deleted');
+    } catch (err: any) {
+      console.error('Could not delete poem from cloud:', err);
+      showToast(err?.message || 'Failed to delete poem from cloud storage.', 'error', 'Delete Error');
     }
   };
 
   const handleAddCuriosity = async (newCuriosity: CuriosityEssay) => {
-    setCuriosities((prev) => [newCuriosity, ...prev.filter((c) => c.id !== newCuriosity.id)]);
     try {
       await persistCuriosity(newCuriosity);
-    } catch (err) {
-      console.warn('Could not persist curiosity essay to cloud:', err);
+      setCuriosities((prev) => [newCuriosity, ...prev.filter((c) => c.id !== newCuriosity.id)]);
+      showToast(`Curiosity "${newCuriosity.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
+    } catch (err: any) {
+      console.error('Could not persist curiosity essay to cloud:', err);
+      const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
+      showToast(
+        isAuthIssue
+          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
+          : (err?.message || 'Failed to persist essay to cloud storage.'),
+        'error',
+        'Persistence Error'
+      );
+      if (isAuthIssue) {
+        setIsAdminLoginOpen(true);
+      }
     }
   };
 
   const handleDeleteCuriosity = async (id: string) => {
-    setCuriosities((prev) => prev.filter((c) => c.id !== id));
     try {
       await deleteCuriosityFromCloud(id);
-    } catch (err) {
-      console.warn('Could not delete curiosity from cloud:', err);
+      setCuriosities((prev) => prev.filter((c) => c.id !== id));
+      showToast('Curiosity essay deleted from Cloud Firestore.', 'info', 'Deleted');
+    } catch (err: any) {
+      console.error('Could not delete curiosity from cloud:', err);
+      showToast(err?.message || 'Failed to delete curiosity from cloud storage.', 'error', 'Delete Error');
     }
   };
 
   const handleAddComputerArticle = async (newArticle: ComputerArticle) => {
-    setComputerArticles((prev) => [newArticle, ...prev.filter((a) => a.id !== newArticle.id)]);
     try {
       await persistComputerArticle(newArticle);
-    } catch (err) {
-      console.warn('Could not persist computer article to cloud:', err);
+      setComputerArticles((prev) => [newArticle, ...prev.filter((a) => a.id !== newArticle.id)]);
+      showToast(`Computer article "${newArticle.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
+    } catch (err: any) {
+      console.error('Could not persist computer article to cloud:', err);
+      const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
+      showToast(
+        isAuthIssue
+          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
+          : (err?.message || 'Failed to persist computer article to cloud storage.'),
+        'error',
+        'Persistence Error'
+      );
+      if (isAuthIssue) {
+        setIsAdminLoginOpen(true);
+      }
     }
   };
 
   const handleDeleteComputerArticle = async (id: string) => {
-    setComputerArticles((prev) => prev.filter((a) => a.id !== id));
     try {
       await deleteComputerArticleFromCloud(id);
-    } catch (err) {
-      console.warn('Could not delete computer article from cloud:', err);
+      setComputerArticles((prev) => prev.filter((a) => a.id !== id));
+      showToast('Computer article deleted from Cloud Firestore.', 'info', 'Deleted');
+    } catch (err: any) {
+      console.error('Could not delete computer article from cloud:', err);
+      showToast(err?.message || 'Failed to delete computer article from cloud storage.', 'error', 'Delete Error');
     }
   };
 
   const handleSaveNewDiaryPost = async (newPost: DiaryPost) => {
-    setDiaryPosts((prev) => [newPost, ...prev.filter((p) => p.id !== newPost.id)]);
     try {
       await persistDiaryPost(newPost);
-    } catch (err) {
-      console.warn('Could not persist diary post to cloud:', err);
+      setDiaryPosts((prev) => [newPost, ...prev.filter((p) => p.id !== newPost.id)]);
+      showToast(`Diary post "${newPost.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
+    } catch (err: any) {
+      console.error('Could not persist diary post to cloud:', err);
+      const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
+      showToast(
+        isAuthIssue
+          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
+          : (err?.message || 'Failed to persist diary entry to cloud storage.'),
+        'error',
+        'Persistence Error'
+      );
+      if (isAuthIssue) {
+        setIsAdminLoginOpen(true);
+      }
     }
   };
 
   const handleDeleteDiaryPost = async (id: string) => {
-    setDiaryPosts((prev) => prev.filter((p) => p.id !== id));
     try {
       await deleteDiaryPostFromCloud(id);
-    } catch (err) {
-      console.warn('Could not delete diary post from cloud:', err);
+      setDiaryPosts((prev) => prev.filter((p) => p.id !== id));
+      showToast('Diary post deleted from Cloud Firestore.', 'info', 'Deleted');
+    } catch (err: any) {
+      console.error('Could not delete diary post from cloud:', err);
+      showToast(err?.message || 'Failed to delete diary entry from cloud storage.', 'error', 'Delete Error');
     }
   };
 
@@ -352,84 +417,95 @@ export default function App() {
 
   // Comments & Moderation Actions (Realtime + Cloud Firestore)
   const handleAddComment = async (newComment: BlogComment) => {
-    setComments((prev) => [newComment, ...prev.filter((c) => c.id !== newComment.id)]);
     try {
       await persistComment(newComment);
-    } catch (err) {
-      console.warn('Could not persist comment to cloud:', err);
+      setComments((prev) => [newComment, ...prev.filter((c) => c.id !== newComment.id)]);
+      showToast('Your reflection has been submitted.', 'success', 'Submitted');
+    } catch (err: any) {
+      console.error('Could not persist comment to cloud:', err);
+      showToast(err?.message || 'Failed to submit comment to cloud database.', 'error', 'Comment Error');
     }
   };
 
   const handleUpdateCommentStatus = async (commentId: string, status: 'approved' | 'pending' | 'flagged') => {
-    setComments((prev) =>
-      prev.map((c) => (c.id === commentId ? { ...c, status } : c))
-    );
     try {
       await updateCommentStatusInCloud(commentId, status);
-    } catch (err) {
-      console.warn('Could not update comment status in cloud:', err);
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, status } : c))
+      );
+      showToast(`Comment status updated to ${status}.`, 'info', 'Status Updated');
+    } catch (err: any) {
+      console.error('Could not update comment status in cloud:', err);
+      showToast(err?.message || 'Failed to update comment status in cloud database.', 'error', 'Moderation Error');
     }
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    setComments((prev) => prev.filter((c) => c.id !== commentId));
     try {
       await deleteCommentFromCloud(commentId);
-    } catch (err) {
-      console.warn('Could not delete comment from cloud:', err);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      showToast('Comment deleted from Cloud Firestore.', 'info', 'Deleted');
+    } catch (err: any) {
+      console.error('Could not delete comment from cloud:', err);
+      showToast(err?.message || 'Failed to delete comment from cloud database.', 'error', 'Delete Error');
     }
   };
 
   // Start Over & Reset Website Handlers (Local + Firestore Synchronization)
   const handleResetToDefaults = async () => {
-    setPoems(INITIAL_POEMS);
-    setCuriosities(INITIAL_CURIOSITIES);
-    setComputerArticles(INITIAL_COMPUTER_ARTICLES);
-    setDiaryPosts(INITIAL_DIARY_POSTS);
-    setComments(INITIAL_COMMENTS);
     try {
+      await resetCloudToDefaults();
+      setPoems(INITIAL_POEMS);
+      setCuriosities(INITIAL_CURIOSITIES);
+      setComputerArticles(INITIAL_COMPUTER_ARTICLES);
+      setDiaryPosts(INITIAL_DIARY_POSTS);
+      setComments(INITIAL_COMMENTS);
       localStorage.setItem('markryan_poems', JSON.stringify(INITIAL_POEMS));
       localStorage.setItem('markryan_curiosities', JSON.stringify(INITIAL_CURIOSITIES));
       localStorage.setItem('markryan_computer', JSON.stringify(INITIAL_COMPUTER_ARTICLES));
       localStorage.setItem('markryan_diary', JSON.stringify(INITIAL_DIARY_POSTS));
       localStorage.setItem('markryan_blog_comments', JSON.stringify(INITIAL_COMMENTS));
-      await resetCloudToDefaults();
-    } catch (e) {
-      console.warn('Error resetting to defaults:', e);
+      showToast('Website content restored to defaults.', 'success', 'Defaults Restored');
+    } catch (e: any) {
+      console.error('Error resetting to defaults:', e);
+      showToast(e?.message || 'Failed to reset cloud content to defaults.', 'error', 'Reset Error');
     }
   };
 
   const handleStartFromScratch = async () => {
     try {
       await clearCloudContent(poems, curiosities, computerArticles, diaryPosts, comments);
-    } catch (e) {
-      console.warn('Error clearing cloud content:', e);
-    }
-    setPoems([]);
-    setCuriosities([]);
-    setComputerArticles([]);
-    setDiaryPosts([]);
-    setComments([]);
-    try {
+      setPoems([]);
+      setCuriosities([]);
+      setComputerArticles([]);
+      setDiaryPosts([]);
+      setComments([]);
       localStorage.setItem('markryan_poems', JSON.stringify([]));
       localStorage.setItem('markryan_curiosities', JSON.stringify([]));
       localStorage.setItem('markryan_computer', JSON.stringify([]));
       localStorage.setItem('markryan_diary', JSON.stringify([]));
       localStorage.setItem('markryan_blog_comments', JSON.stringify([]));
-    } catch (e) {
-      console.warn('Error clearing localStorage:', e);
+      showToast('Cloud Firestore content wiped clean.', 'info', 'Content Cleared');
+    } catch (e: any) {
+      console.error('Error clearing cloud content:', e);
+      showToast(e?.message || 'Failed to clear cloud content.', 'error', 'Clear Error');
     }
   };
 
   const handleClearMediaStorage = async () => {
-    await clearAllPersistentImages();
-    localStorage.removeItem('markryan_recent_uploads');
-    localStorage.removeItem('markryan_brand_avatar_data');
+    try {
+      await clearAllPersistentImages();
+      localStorage.removeItem('markryan_recent_uploads');
+      localStorage.removeItem('markryan_brand_avatar_data');
+      showToast('Local media storage and cached uploads cleared.', 'info', 'Media Cleared');
+    } catch (e: any) {
+      console.error('Error clearing media storage:', e);
+      showToast(e?.message || 'Failed to clear media storage.', 'error', 'Clear Error');
+    }
   };
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-[#f3f3f4] text-stone-900 selection:bg-[#722F37] selection:text-white font-sans">
+    <div className="min-h-screen flex flex-col bg-[#f3f3f4] text-stone-900 selection:bg-[#722F37] selection:text-white font-sans">
       {/* Global Navigation Header */}
       <Navigation
         activeSection={activeSection}
@@ -508,6 +584,9 @@ export default function App() {
               onUpdateCommentStatus={handleUpdateCommentStatus}
               onDeleteComment={handleDeleteComment}
               onOpenStartOver={() => setIsStartOverOpen(true)}
+              isFirebaseAuthActive={Boolean(auth.currentUser)}
+              currentUserEmail={auth.currentUser?.email || null}
+              onRequireAdminAuth={() => setIsAdminLoginOpen(true)}
             />
           ) : (
             <div className="max-w-md mx-auto py-24 px-4 text-center space-y-4">
@@ -748,6 +827,5 @@ export default function App() {
         onClearMediaStorage={handleClearMediaStorage}
       />
     </div>
-  </ToastProvider>
   );
 }

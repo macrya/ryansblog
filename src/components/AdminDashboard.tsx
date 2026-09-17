@@ -50,6 +50,9 @@ interface AdminDashboardProps {
   onUpdateCommentStatus: (id: string, status: 'approved' | 'pending' | 'flagged') => void;
   onDeleteComment: (id: string) => void;
   onOpenStartOver?: () => void;
+  isFirebaseAuthActive?: boolean;
+  currentUserEmail?: string | null;
+  onRequireAdminAuth?: () => void;
 }
 
 export function AdminDashboard({
@@ -68,6 +71,9 @@ export function AdminDashboard({
   onUpdateCommentStatus,
   onDeleteComment,
   onOpenStartOver,
+  isFirebaseAuthActive = false,
+  currentUserEmail,
+  onRequireAdminAuth,
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'diary' | 'comments' | 'curiosities' | 'poems' | 'computer'>('overview');
   const [commentFilter, setCommentFilter] = useState<'all' | 'pending' | 'flagged' | 'approved'>('all');
@@ -98,10 +104,22 @@ export function AdminDashboard({
                 <span className="px-2 py-0.5 rounded-full bg-[#722F37] text-stone-100 text-[10px] font-sans uppercase tracking-wider font-semibold">
                   Authorized Admin
                 </span>
-                <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-sans font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Cloud Firestore Active
-                </span>
+                {isFirebaseAuthActive ? (
+                  <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[10px] font-sans font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Firebase Auth: {currentUserEmail || 'Verified'}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onRequireAdminAuth}
+                    className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-700/60 text-amber-300 text-[10px] font-sans font-medium hover:bg-amber-900 transition-colors cursor-pointer"
+                    title="Click to sign in with Firebase Auth"
+                  >
+                    <AlertTriangle className="w-3 h-3 text-amber-400" />
+                    Firebase Auth Session Inactive
+                  </button>
+                )}
               </div>
               <p className="text-[11px] text-stone-400">
                 Persistent CMS &middot; Real-time Multi-Device Sync &middot; Comment Moderation
@@ -237,6 +255,29 @@ export function AdminDashboard({
           </button>
         </div>
       </header>
+
+      {/* Informational Warning Banner if Firebase Auth session is not active */}
+      {!isFirebaseAuthActive && (
+        <div className="bg-amber-100/90 border-b border-amber-300 text-amber-950 px-4 py-3 sm:px-6">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs">
+              <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>
+                <strong>Firebase Auth Session Inactive:</strong> Unlocking via passcode alone does not authenticate with Firebase Auth. Firestore security rules require an active Firebase Auth session for <code className="bg-amber-200/80 px-1 py-0.5 rounded text-amber-900 font-mono">kimmarkryan5@gmail.com</code> before allowing writes to poems, curiosities, articles, diary, or comments.
+              </span>
+            </div>
+            {onRequireAdminAuth && (
+              <button
+                type="button"
+                onClick={onRequireAdminAuth}
+                className="px-3.5 py-1.5 bg-[#722F37] hover:bg-[#581c24] text-white rounded-lg text-xs font-medium shrink-0 transition-colors shadow-xs"
+              >
+                Sign In with Firebase Auth
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">

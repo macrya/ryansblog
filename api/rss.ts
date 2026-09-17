@@ -18,7 +18,7 @@ function getSafeBaseUrl(req: ExtendedRequest): string {
   const rawHost =
     (req.headers['x-forwarded-host'] as string) ||
     (req.headers['host'] as string) ||
-    'markryan.dev';
+    'ryansblog-u3o9.vercel.app';
 
   const cleanHost = rawHost.split(',')[0].trim();
   // Ensure host contains only valid hostname characters
@@ -28,7 +28,7 @@ function getSafeBaseUrl(req: ExtendedRequest): string {
     return `${cleanProto}://${cleanHost}`;
   }
 
-  return 'https://markryan.dev';
+  return 'https://ryansblog-u3o9.vercel.app';
 }
 
 /**
