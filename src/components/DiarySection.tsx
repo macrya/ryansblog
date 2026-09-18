@@ -267,6 +267,12 @@ export function DiarySection({
                       <img
                         src={currentPost.imageUrl}
                         alt={currentPost.title}
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          // Hide broken image container cleanly if asset fails to load
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) parent.style.display = 'none';
+                        }}
                         className="w-full h-full object-cover"
                       />
                     </div>

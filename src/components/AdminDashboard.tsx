@@ -90,7 +90,7 @@ export function AdminDashboard({
   return (
     <div className="min-h-screen bg-[#ececee] text-stone-900 pb-24 font-sans" id="admin-dashboard-page">
       {/* Top Administrative Bar */}
-      <header className="bg-stone-900 text-stone-100 border-b border-stone-800 sticky top-0 z-40 shadow-sm">
+      <header className="bg-stone-900 text-stone-100 border-b border-stone-800 sticky top-18 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#722F37] text-white flex items-center justify-center font-serif font-bold text-sm">

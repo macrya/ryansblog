@@ -17,12 +17,12 @@ export function BrandAvatar({
   isAdmin = false,
   onOpenAdminLogin,
 }: BrandAvatarProps) {
-  // Ordered sources to attempt loading
+  // Ordered sources to attempt loading (prioritizing existing local SVG asset)
   const defaultSources = [
+    '/markryan-avatar.svg',
     '/image.png',
     '/markryan.png',
     '/assets/image.png',
-    '/markryan-avatar.svg',
   ];
 
   const [currentSrcIndex, setCurrentSrcIndex] = useState(0);

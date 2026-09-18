@@ -692,7 +692,7 @@ function AppInner() {
             </div>
 
             {/* Quick Navigation in Footer */}
-            <div className="flex items-center gap-5 text-xs text-stone-400">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-xs text-stone-400">
               <button
                 type="button"
                 onClick={() => handleSelectSection('poet')}

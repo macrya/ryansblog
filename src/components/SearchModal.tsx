@@ -76,7 +76,7 @@ export function SearchModal({
         sectionLabel: 'The Blog (Diary)',
         summary: post.content.slice(0, 180) + '...',
         matchExcerpt: `${post.title} ${post.content} ${post.location || ''} ${post.mood || ''}`,
-        dateOrCategory: `${post.date} &middot; ${post.time}`,
+        dateOrCategory: `${post.date} · ${post.time}`,
       });
     });
 
@@ -96,7 +96,7 @@ export function SearchModal({
         sectionLabel: 'Random Knowledge',
         summary: essay.summary,
         matchExcerpt: allText,
-        dateOrCategory: `${essay.category} &middot; ${essay.readTime}`,
+        dateOrCategory: `${essay.category} · ${essay.readTime}`,
       });
     });
 
@@ -110,7 +110,7 @@ export function SearchModal({
         sectionLabel: 'The Poet / Writer',
         summary: poem.quoteExcerpt || poem.subtitle || stanzaText.slice(0, 140) + '...',
         matchExcerpt: `${poem.title} ${poem.subtitle || ''} ${poem.theme} ${stanzaText}`,
-        dateOrCategory: `Poem &middot; ${poem.theme}`,
+        dateOrCategory: `Poem · ${poem.theme}`,
       });
     });
 

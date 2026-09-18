@@ -317,7 +317,7 @@ export function Navigation({
       </div>
 
       {/* Mobile Tab Bar */}
-      <div className="md:hidden flex items-center justify-around px-2 py-2 border-t border-stone-200/60 bg-stone-100/80 overflow-x-auto text-xs">
+      <div className="md:hidden flex items-center justify-start sm:justify-center gap-1.5 px-3 py-2 border-t border-stone-200/60 bg-stone-100/90 overflow-x-auto text-xs scrollbar-none">
         <button
           type="button"
           onClick={() => onSelectSection('poet')}

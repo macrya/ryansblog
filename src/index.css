@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-baskerville: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --font-pecita: 'Caveat', 'Pecita', cursive;
+  --font-bricolage: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-bajaderka: 'Cinzel Decorative', Marcellus, serif;
+  --font-nightingale: 'Newsreader', 'Libre Baskerville', Georgia, serif;
+  --font-comic: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+  --font-code: 'Fira Code', monospace;
+
+  --color-burgundy: #722F37;
+  --color-burgundy-dark: #581c24;
+}
+
 @layer base {
   :root {
     --font-cormorant: 'Cormorant Garamond', Georgia, serif;
