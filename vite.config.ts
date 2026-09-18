@@ -2,7 +2,14 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
-import { getAdminPassword, timingSafeEqual, signAdminToken } from './api/_utils/security';
+import {
+  getAdminPassword,
+  timingSafeEqual,
+  signAdminToken,
+  verifyAdminToken,
+  isSafeVercelBlobUrl,
+} from './api/_utils/security';
+import { del } from '@vercel/blob';
 
 export default defineConfig(() => {
   return {
@@ -13,6 +20,7 @@ export default defineConfig(() => {
         name: 'api-dev-middleware',
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
+            // Handler for /api/verify-admin
             if (req.url && req.url.startsWith('/api/verify-admin') && req.method === 'POST') {
               let body = '';
               req.on('data', (chunk: any) => {
@@ -71,6 +79,89 @@ export default defineConfig(() => {
               });
               return;
             }
+
+            // Handler for /api/delete-post
+            if (req.url && req.url.startsWith('/api/delete-post') && req.method === 'POST') {
+              let body = '';
+              req.on('data', (chunk: any) => {
+                body += chunk;
+              });
+              req.on('end', async () => {
+                try {
+                  const authHeader = req.headers['authorization'] || '';
+                  const bearerToken = authHeader.startsWith('Bearer ')
+                    ? authHeader.slice(7).trim()
+                    : '';
+
+                  const parsed = JSON.parse(body || '{}');
+                  const { postId, adminSecret, imageUrl } = parsed;
+                  const secretCandidate = adminSecret || bearerToken;
+
+                  const expectedPassword = getAdminPassword();
+                  const envPassword = process.env.ADMIN_PASSWORD;
+
+                  const isAuthorized =
+                    (secretCandidate &&
+                      (timingSafeEqual(secretCandidate.trim(), expectedPassword.trim()) ||
+                        (envPassword ? timingSafeEqual(secretCandidate.trim(), envPassword.trim()) : false))) ||
+                    verifyAdminToken(secretCandidate, expectedPassword) ||
+                    (envPassword ? verifyAdminToken(secretCandidate, envPassword) : false);
+
+                  if (!isAuthorized) {
+                    res.statusCode = 401;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({
+                      success: false,
+                      error: 'UNAUTHORIZED',
+                      message: 'Access denied: Invalid administrator credentials.',
+                    }));
+                    return;
+                  }
+
+                  if (!postId || typeof postId !== 'string') {
+                    res.statusCode = 400;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify({
+                      success: false,
+                      error: 'MISSING_POST_ID',
+                      message: 'A valid postId must be provided.',
+                    }));
+                    return;
+                  }
+
+                  let blobDeleted = false;
+                  if (imageUrl && isSafeVercelBlobUrl(imageUrl)) {
+                    try {
+                      await del(imageUrl);
+                      blobDeleted = true;
+                    } catch (blobErr) {
+                      console.warn('Dev Blob purge notice:', blobErr);
+                    }
+                  }
+
+                  res.statusCode = 200;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({
+                    success: true,
+                    message: blobDeleted
+                      ? 'Post and associated Vercel Blob asset removed.'
+                      : 'Post deleted successfully.',
+                    deletedPostId: postId,
+                    blobDeleted,
+                  }));
+                } catch (err: any) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({
+                    success: false,
+                    error: 'SERVER_ERROR',
+                    message: err?.message || 'Internal server error',
+                  }));
+                }
+              });
+              return;
+            }
+
             next();
           });
         },

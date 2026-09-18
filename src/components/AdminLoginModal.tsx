@@ -67,23 +67,28 @@ export function AdminLoginModal({
         sessionStorage.setItem('markryan_admin_token', data.adminToken);
       }
 
-      // Automatically establish real Firebase Auth session so request.auth is populated for Firestore security rules
+      // Automatically establish real Firebase Auth session if credentials match or are provisioned,
+      // but do not crash the master passcode admin authentication if Firebase Auth throws an error.
       try {
-        await signInWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
-      } catch (fbErr: any) {
-        if (fbErr?.code === 'auth/user-not-found') {
-          try {
-            await createUserWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
-          } catch (createErr) {
-            console.warn('Auto-provision Firebase admin user notice:', createErr);
+        try {
+          await signInWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
+        } catch (fbErr: any) {
+          if (fbErr?.code === 'auth/user-not-found') {
+            try {
+              await createUserWithEmailAndPassword(auth, SUPERADMIN_EMAIL, passcode.trim());
+            } catch (createErr) {
+              console.warn('Auto-provision Firebase admin user notice:', createErr);
+            }
+          } else {
+            console.warn('Firebase Auth sign-in notice:', fbErr?.code || fbErr?.message);
           }
-        } else {
-          console.warn('Firebase Auth sign-in with passcode notice:', fbErr?.code || fbErr?.message);
         }
-      }
 
-      if (auth.currentUser) {
-        await verifyUserIsAdmin(auth.currentUser);
+        if (auth.currentUser) {
+          await verifyUserIsAdmin(auth.currentUser);
+        }
+      } catch (authSyncErr) {
+        console.warn('Firebase Auth sync skipped (passcode auth active):', authSyncErr);
       }
 
       setIsSuccess(true);
@@ -95,7 +100,11 @@ export function AdminLoginModal({
       }, 500);
     } catch (err: any) {
       console.error('Server passcode verification error:', err);
-      setError('Could not reach authorization server. Please try again.');
+      setError(
+        err?.message && !err.message.includes('fetch')
+          ? err.message
+          : 'Could not reach authorization server. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }

@@ -20,6 +20,7 @@ export interface DeletePostResult {
 }
 
 import crypto from 'node:crypto';
+import { getAdminPassword } from '../../api/_utils/security';
 
 /**
  * Constant-time comparison
@@ -29,6 +30,54 @@ function safeEqual(a: string | undefined | null, b: string | undefined | null): 
   const hashA = crypto.createHash('sha256').update(a).digest();
   const hashB = crypto.createHash('sha256').update(b).digest();
   return crypto.timingSafeEqual(hashA, hashB);
+}
+
+/**
+ * Verify admin secret (passcode or signed HMAC admin token)
+ */
+function verifySecret(adminSecret: string | undefined): boolean {
+  if (!adminSecret || typeof adminSecret !== 'string') return false;
+
+  const expectedPassword = getAdminPassword();
+  const envPassword = process.env.ADMIN_PASSWORD;
+
+  // Direct match with passcode
+  if (
+    safeEqual(adminSecret.trim(), expectedPassword.trim()) ||
+    (envPassword ? safeEqual(adminSecret.trim(), envPassword.trim()) : false)
+  ) {
+    return true;
+  }
+
+  // Check if it is a signed HMAC token from sessionStorage
+  try {
+    const decoded = JSON.parse(Buffer.from(adminSecret, 'base64').toString('utf-8'));
+    if (decoded.tokenData && decoded.tokenSignature) {
+      const parts = decoded.tokenData.split(':');
+      if (parts.length >= 2) {
+        const expiry = parseInt(parts[1], 10);
+        if (Date.now() <= expiry) {
+          const sigExpected = crypto
+            .createHmac('sha256', expectedPassword)
+            .update(decoded.tokenData)
+            .digest('hex');
+          if (safeEqual(decoded.tokenSignature, sigExpected)) return true;
+
+          if (envPassword) {
+            const sigEnv = crypto
+              .createHmac('sha256', envPassword)
+              .update(decoded.tokenData)
+              .digest('hex');
+            if (safeEqual(decoded.tokenSignature, sigEnv)) return true;
+          }
+        }
+      }
+    }
+  } catch {
+    // Not a valid token format
+  }
+
+  return false;
 }
 
 /**
@@ -75,9 +124,7 @@ export async function deletePost(
   }
 
   // 1. Authorization Check — strictly requires valid admin secret
-  const expectedPassword = process.env.ADMIN_PASSWORD;
-  const isAuthorized =
-    Boolean(expectedPassword && adminSecret && safeEqual(adminSecret, expectedPassword));
+  const isAuthorized = verifySecret(adminSecret);
 
   if (!isAuthorized) {
     return {
