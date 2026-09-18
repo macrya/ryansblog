@@ -19,10 +19,10 @@ export function getAdminPassword(): string {
   } catch {}
 
   const envVal = process.env.ADMIN_PASSWORD;
-  if (envVal && envVal.trim().length > 0 && envVal !== 'Mogul') {
+  if (envVal && envVal.trim().length > 0) {
     return envVal.trim();
   }
-  return 'Mogulll';
+  return 'default-admin-key';
 }
 
 /**
@@ -120,14 +120,18 @@ interface RateLimitEntry {
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
 // Clean up stale entries every 5 minutes
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitMap.entries()) {
     if (entry.resetAt <= now) {
       rateLimitMap.delete(key);
     }
   }
-}, 300000).unref();
+}, 300000);
+
+if (cleanupTimer && typeof cleanupTimer === 'object' && typeof (cleanupTimer as any).unref === 'function') {
+  (cleanupTimer as any).unref();
+}
 
 export interface RateLimitOptions {
   windowMs: number;

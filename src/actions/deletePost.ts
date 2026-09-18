@@ -123,6 +123,42 @@ export async function deletePost(
     };
   }
 
+  // When executed in client browser context, delegate to the backend API endpoint
+  if (typeof window !== 'undefined') {
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminSecret) {
+        headers['Authorization'] = `Bearer ${adminSecret}`;
+      }
+
+      const response = await fetch('/api/delete-post', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          postId,
+          adminSecret,
+          imageUrl,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || `Server returned ${response.status}`,
+          error: data.error || 'SERVER_ERROR',
+        };
+      }
+      return data;
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Network communication error',
+        error: 'NETWORK_ERROR',
+      };
+    }
+  }
+
   // 1. Authorization Check — strictly requires valid admin secret
   const isAuthorized = verifySecret(adminSecret);
 

@@ -66,51 +66,57 @@ export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: P
               <span>{poems.length} Compositions</span>
             </div>
 
-            <div className="space-y-2.5">
-              {poems.map((poem, idx) => {
-                const isSelected = poem.id === activePoem?.id;
-                return (
-                  <button
-                    key={poem.id}
-                    type="button"
-                    onClick={() => setSelectedPoemId(poem.id)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all duration-300 relative group ${
-                      isSelected
-                        ? 'bg-white shadow-md border-[#722F37] translate-x-1'
-                        : 'bg-white/60 hover:bg-white/90 border-stone-200/80 hover:border-[#722F37]/40'
-                    }`}
-                    id={`poem-selector-${poem.id}`}
-                  >
-                    {/* Burgundy Left Accent Indicator */}
-                    <div
-                      className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full transition-all duration-300 ${
-                        isSelected ? 'bg-[#722F37]' : 'bg-transparent group-hover:bg-[#722F37]/30'
+            {poems.length === 0 ? (
+              <div className="p-6 rounded-xl bg-white/70 border border-[#722F37]/20 text-center text-xs text-stone-500 font-serif space-y-2">
+                <p className="italic">Folio is currently being compiled.</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {poems.map((poem, idx) => {
+                  const isSelected = poem.id === activePoem?.id;
+                  return (
+                    <button
+                      key={poem.id}
+                      type="button"
+                      onClick={() => setSelectedPoemId(poem.id)}
+                      className={`w-full text-left p-4 rounded-xl border transition-all duration-300 relative group ${
+                        isSelected
+                          ? 'bg-white shadow-md border-[#722F37] translate-x-1'
+                          : 'bg-white/60 hover:bg-white/90 border-stone-200/80 hover:border-[#722F37]/40'
                       }`}
-                    />
+                      id={`poem-selector-${poem.id}`}
+                    >
+                      {/* Burgundy Left Accent Indicator */}
+                      <div
+                        className={`absolute left-0 top-3 bottom-3 w-1 rounded-r-full transition-all duration-300 ${
+                          isSelected ? 'bg-[#722F37]' : 'bg-transparent group-hover:bg-[#722F37]/30'
+                        }`}
+                      />
 
-                    <div className="pl-2">
-                      <div className="flex items-center justify-between text-[11px] text-stone-500 font-serif mb-1">
-                        <span className="text-[#722F37] font-semibold">Canticle {idx + 1}</span>
-                        <span>{poem.date}</span>
+                      <div className="pl-2">
+                        <div className="flex items-center justify-between text-[11px] text-stone-500 font-serif mb-1">
+                          <span className="text-[#722F37] font-semibold">Canticle {idx + 1}</span>
+                          <span>{poem.date}</span>
+                        </div>
+                        <h3 className="font-cormorant text-xl font-medium text-stone-900 leading-snug group-hover:text-[#722F37] transition-colors">
+                          {poem.title}
+                        </h3>
+                        {poem.subtitle && (
+                          <p className="font-baskerville text-xs text-stone-500 italic mt-0.5 line-clamp-1">
+                            {poem.subtitle}
+                          </p>
+                        )}
+                        <div className="mt-2.5 flex items-center gap-2">
+                          <span className="text-[10px] uppercase font-sans tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600 border border-stone-200">
+                            {poem.theme}
+                          </span>
+                        </div>
                       </div>
-                      <h3 className="font-cormorant text-xl font-medium text-stone-900 leading-snug group-hover:text-[#722F37] transition-colors">
-                        {poem.title}
-                      </h3>
-                      {poem.subtitle && (
-                        <p className="font-baskerville text-xs text-stone-500 italic mt-0.5 line-clamp-1">
-                          {poem.subtitle}
-                        </p>
-                      )}
-                      <div className="mt-2.5 flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-sans tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600 border border-stone-200">
-                          {poem.theme}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Dostoevsky & Bukowski Epigraph Callout */}
             <div className="mt-6 p-4 rounded-xl bg-[#722F37]/5 border border-[#722F37]/20 text-xs font-serif text-stone-700 leading-relaxed space-y-2">
@@ -125,7 +131,7 @@ export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: P
 
           {/* Active Poem Framing with Burgundy Accents */}
           <div className="lg:col-span-8">
-            {activePoem && (
+            {activePoem ? (
               <article
                 className="bg-white/95 backdrop-blur-md rounded-2xl p-6 sm:p-10 lg:p-12 border-2 border-[#722F37]/30 shadow-xl relative overflow-hidden"
                 id="active-poem-card"
@@ -225,6 +231,16 @@ export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: P
                   </div>
                 </div>
               </article>
+            ) : (
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-12 border-2 border-[#722F37]/20 shadow-xl text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-[#722F37]/10 text-[#722F37] flex items-center justify-center mx-auto">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <h3 className="font-cormorant text-2xl text-stone-800 font-normal">Folio Collection</h3>
+                <p className="font-baskerville text-sm text-stone-500 italic max-w-sm mx-auto">
+                  Select a composition from the index on the left to read verses.
+                </p>
+              </div>
             )}
           </div>
         </div>

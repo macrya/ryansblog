@@ -22,6 +22,7 @@ import {
   collection,
   onSnapshot,
   query,
+  where,
   orderBy,
   type Firestore,
   writeBatch,
@@ -110,6 +111,32 @@ export async function verifyUserIsAdmin(user: User | null): Promise<boolean> {
   }
 }
 
+export function normalizePoemFromFirestore(docData: any): Poem {
+  let stanzas: string[][] = [];
+  if (Array.isArray(docData.stanzas)) {
+    stanzas = docData.stanzas.map((s: any) => {
+      if (Array.isArray(s)) return s;
+      if (typeof s === 'string') return s.split('\n');
+      if (s && Array.isArray(s.lines)) return s.lines;
+      return [String(s)];
+    });
+  }
+  return {
+    ...docData,
+    stanzas,
+  };
+}
+
+export function preparePoemForFirestore(poem: Poem): any {
+  return {
+    ...poem,
+    // Flatten 2D string[][] stanzas to 1D string[] array for Firestore compliance
+    stanzas: poem.stanzas.map((stanza) =>
+      Array.isArray(stanza) ? stanza.join('\n') : String(stanza)
+    ),
+  };
+}
+
 // -------------------------------------------------------------
 // REALTIME PERSISTENT SUBSCRIPTIONS (Live sync across browsers)
 // -------------------------------------------------------------
@@ -120,11 +147,12 @@ export function subscribeToPoems(onUpdate: (poems: Poem[]) => void) {
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        onUpdate([]);
         return;
       }
-      const data = snapshot.docs.map((d) => d.data() as Poem);
-      onUpdate(data);
+      const data = snapshot.docs.map((d) => normalizePoemFromFirestore(d.data()));
+      if (data.length > 0) {
+        onUpdate(data);
+      }
     },
     (err) => {
       console.warn('Poems subscription error, falling back:', err);
@@ -138,11 +166,12 @@ export function subscribeToCuriosities(onUpdate: (essays: CuriosityEssay[]) => v
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        onUpdate([]);
         return;
       }
       const data = snapshot.docs.map((d) => d.data() as CuriosityEssay);
-      onUpdate(data);
+      if (data.length > 0) {
+        onUpdate(data);
+      }
     },
     (err) => {
       console.warn('Curiosities subscription error:', err);
@@ -156,11 +185,12 @@ export function subscribeToComputerArticles(onUpdate: (articles: ComputerArticle
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        onUpdate([]);
         return;
       }
       const data = snapshot.docs.map((d) => d.data() as ComputerArticle);
-      onUpdate(data);
+      if (data.length > 0) {
+        onUpdate(data);
+      }
     },
     (err) => {
       console.warn('Computer articles subscription error:', err);
@@ -177,13 +207,14 @@ export function subscribeToDiaryPosts(
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        onUpdate([]);
         return;
       }
       const data = snapshot.docs.map((d) => d.data() as DiaryPost);
-      // Sort newest first
-      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      onUpdate(data);
+      if (data.length > 0) {
+        // Sort newest first
+        data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        onUpdate(data);
+      }
     },
     (err) => {
       console.warn('Diary posts subscription error:', err);
@@ -209,10 +240,14 @@ export async function fetchDiaryPostsFromCloud(forceServer = true): Promise<Diar
   }
 }
 
-export function subscribeToComments(onUpdate: (comments: BlogComment[]) => void) {
+export function subscribeToComments(
+  onUpdate: (comments: BlogComment[]) => void,
+  isAdmin = false
+) {
   const colRef = collection(db, 'comments');
+  const q = isAdmin ? colRef : query(colRef, where('status', '==', 'approved'));
   return onSnapshot(
-    colRef,
+    q,
     (snapshot) => {
       if (snapshot.empty) {
         onUpdate([]);
@@ -232,7 +267,7 @@ export function subscribeToComments(onUpdate: (comments: BlogComment[]) => void)
 // -------------------------------------------------------------
 
 export async function persistPoem(poem: Poem): Promise<void> {
-  await setDoc(doc(db, 'poems', poem.id), poem, { merge: true });
+  await setDoc(doc(db, 'poems', poem.id), preparePoemForFirestore(poem), { merge: true });
 }
 
 export async function deletePoemFromCloud(poemId: string): Promise<void> {
@@ -298,9 +333,9 @@ export async function seedInitialContentIfEmpty(): Promise<boolean> {
 
     const batch = writeBatch(db);
 
-    // Seed Poems
+    // Seed Poems (prepared for Firestore schema)
     for (const poem of INITIAL_POEMS) {
-      batch.set(doc(db, 'poems', poem.id), poem);
+      batch.set(doc(db, 'poems', poem.id), preparePoemForFirestore(poem));
     }
     // Seed Curiosities
     for (const essay of INITIAL_CURIOSITIES) {
@@ -339,7 +374,7 @@ export async function seedInitialContentIfEmpty(): Promise<boolean> {
 export async function resetCloudToDefaults(): Promise<void> {
   const batch = writeBatch(db);
   for (const poem of INITIAL_POEMS) {
-    batch.set(doc(db, 'poems', poem.id), poem);
+    batch.set(doc(db, 'poems', poem.id), preparePoemForFirestore(poem));
   }
   for (const essay of INITIAL_CURIOSITIES) {
     batch.set(doc(db, 'curiosities', essay.id), essay);

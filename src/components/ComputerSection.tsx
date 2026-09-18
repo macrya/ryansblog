@@ -99,7 +99,7 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
 
           {/* Active Article & Dark-Mode Code Blocks */}
           <div className="lg:col-span-8">
-            {activeArticle && (
+            {activeArticle ? (
               <article
                 className="bg-white rounded-2xl p-6 sm:p-10 border border-stone-200 shadow-sm space-y-6"
                 id="active-computer-article"
@@ -222,6 +222,14 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
                   ))}
                 </div>
               </article>
+            ) : (
+              <div className="bg-white rounded-2xl p-12 border border-stone-200/80 shadow-sm text-center space-y-3">
+                <Terminal className="w-10 h-10 text-slate-800/50 mx-auto" />
+                <h3 className="font-bajaderka text-3xl text-stone-800">Computer Stuff &middot; Architecture</h3>
+                <p className="font-nightingale text-base text-stone-500 italic max-w-sm mx-auto">
+                  Select an article from the index on the left to read technical systems architectures.
+                </p>
+              </div>
             )}
           </div>
         </div>

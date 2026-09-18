@@ -100,31 +100,81 @@ function AppInner() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState<boolean>(false);
   const [isStartOverOpen, setIsStartOverOpen] = useState<boolean>(false);
 
-  // Persistent collections
+  // Persistent collections with safe fallback to curated portfolio content
   const [poems, setPoems] = useState<Poem[]>(() => {
-    const saved = localStorage.getItem('markryan_poems');
-    return saved ? JSON.parse(saved) : INITIAL_POEMS;
+    try {
+      const saved = localStorage.getItem('markryan_poems');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse saved poems from storage:', e);
+    }
+    return INITIAL_POEMS;
   });
 
   const [curiosities, setCuriosities] = useState<CuriosityEssay[]>(() => {
-    const saved = localStorage.getItem('markryan_curiosities');
-    return saved ? JSON.parse(saved) : INITIAL_CURIOSITIES;
+    try {
+      const saved = localStorage.getItem('markryan_curiosities');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse saved curiosities from storage:', e);
+    }
+    return INITIAL_CURIOSITIES;
   });
 
   const [computerArticles, setComputerArticles] = useState<ComputerArticle[]>(() => {
-    const saved = localStorage.getItem('markryan_computer');
-    return saved ? JSON.parse(saved) : INITIAL_COMPUTER_ARTICLES;
+    try {
+      const saved = localStorage.getItem('markryan_computer');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse saved computer articles from storage:', e);
+    }
+    return INITIAL_COMPUTER_ARTICLES;
   });
 
   const [diaryPosts, setDiaryPosts] = useState<DiaryPost[]>(() => {
-    const saved = localStorage.getItem('markryan_diary');
-    return saved ? JSON.parse(saved) : INITIAL_DIARY_POSTS;
+    try {
+      const saved = localStorage.getItem('markryan_diary');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse saved diary posts from storage:', e);
+    }
+    return INITIAL_DIARY_POSTS;
   });
 
   // Comments for the blog posts with local persistence
   const [comments, setComments] = useState<BlogComment[]>(() => {
-    const saved = localStorage.getItem('markryan_blog_comments');
-    return saved ? JSON.parse(saved) : INITIAL_COMMENTS;
+    try {
+      const saved = localStorage.getItem('markryan_blog_comments');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not parse saved comments from storage:', e);
+    }
+    return INITIAL_COMMENTS;
   });
 
   // 1. Firebase Authentication Listener (Verified Server State)
@@ -137,6 +187,10 @@ function AppInner() {
       if (user) {
         const isPrivileged = await verifyUserIsAdmin(user);
         setIsAdmin(isPrivileged || hasSessionToken);
+        if (isPrivileged) {
+          // As authenticated admin, ensure Firestore database has curated documents seeded
+          seedInitialContentIfEmpty();
+        }
       } else {
         setIsAdmin(hasSessionToken);
       }
@@ -147,9 +201,6 @@ function AppInner() {
 
   // 2. Cloud Firestore Realtime Synchronization (Content Persistence across versions)
   useEffect(() => {
-    // Seed default portfolio documents if Firestore is initially empty
-    seedInitialContentIfEmpty();
-
     // 1. Immediate direct server fetch to bypass any client disk cache
     fetchDiaryPostsFromCloud(true)
       .then((posts) => {
@@ -163,24 +214,34 @@ function AppInner() {
 
     // 2. Real-time continuous subscriptions across all devices and sessions
     const unsubPoems = subscribeToPoems((cloudPoems) => {
-      setPoems(cloudPoems);
+      if (cloudPoems && cloudPoems.length > 0) {
+        setPoems(cloudPoems);
+      }
     });
 
     const unsubCuriosities = subscribeToCuriosities((cloudCuriosities) => {
-      setCuriosities(cloudCuriosities);
+      if (cloudCuriosities && cloudCuriosities.length > 0) {
+        setCuriosities(cloudCuriosities);
+      }
     });
 
     const unsubArticles = subscribeToComputerArticles((cloudArticles) => {
-      setComputerArticles(cloudArticles);
+      if (cloudArticles && cloudArticles.length > 0) {
+        setComputerArticles(cloudArticles);
+      }
     });
 
     const unsubDiary = subscribeToDiaryPosts((cloudPosts) => {
-      setDiaryPosts(cloudPosts);
+      if (cloudPosts && cloudPosts.length > 0) {
+        setDiaryPosts(cloudPosts);
+      }
     });
 
     const unsubComments = subscribeToComments((cloudComments) => {
-      setComments(cloudComments);
-    });
+      if (cloudComments && cloudComments.length > 0) {
+        setComments(cloudComments);
+      }
+    }, isAdmin);
 
     return () => {
       unsubPoems();
@@ -189,7 +250,7 @@ function AppInner() {
       unsubDiary();
       unsubComments();
     };
-  }, []);
+  }, [isAdmin]);
 
   // Sync state to localStorage safely for instant offline fallback
   useEffect(() => {

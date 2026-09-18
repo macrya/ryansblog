@@ -140,7 +140,7 @@ export function RandomKnowledgeSection({
 
           {/* Active Essay Detailed View */}
           <div className="lg:col-span-8">
-            {activeEssay && (
+            {activeEssay ? (
               <article
                 className="bg-white rounded-2xl p-6 sm:p-10 border border-stone-200 shadow-sm space-y-6"
                 id="active-curiosity-essay"
@@ -240,6 +240,14 @@ export function RandomKnowledgeSection({
                   </div>
                 )}
               </article>
+            ) : (
+              <div className="bg-white rounded-2xl p-12 border border-stone-200/80 shadow-sm text-center space-y-3">
+                <Compass className="w-10 h-10 text-amber-800/50 mx-auto" />
+                <h3 className="font-pecita text-3xl text-stone-800">Cabinet of Curiosities</h3>
+                <p className="font-bricolage text-sm text-stone-500 max-w-sm mx-auto">
+                  Select an inquiry from the list on the left to explore technical blueprints and engineering mechanics.
+                </p>
+              </div>
             )}
           </div>
         </div>

@@ -147,7 +147,7 @@ export function BrandAvatar({
               alt="MarkRyan"
               onError={handleImageError}
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover object-center rounded-full transition-transform duration-500 group-hover:scale-108"
+              className="w-full h-full object-cover object-center rounded-full transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full rounded-full bg-[#722F37] text-amber-50 font-cormorant font-bold flex items-center justify-center text-sm sm:text-base">
