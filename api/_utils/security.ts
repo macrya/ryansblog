@@ -1,5 +1,29 @@
 import crypto from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+
+/**
+ * Retrieves the effective admin password, prioritizing .env override, process.env, or defaulting to Mogulll.
+ */
+export function getAdminPassword(): string {
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      const match = content.match(/^\s*ADMIN_PASSWORD\s*=\s*(.*?)\s*$/m);
+      if (match && match[1]) {
+        return match[1].replace(/^["']|["']$/g, '').trim();
+      }
+    }
+  } catch {}
+
+  const envVal = process.env.ADMIN_PASSWORD;
+  if (envVal && envVal.trim().length > 0 && envVal !== 'Mogul') {
+    return envVal.trim();
+  }
+  return 'Mogulll';
+}
 
 /**
  * Constant-time comparison for sensitive tokens and passcodes.

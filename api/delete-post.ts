@@ -9,6 +9,7 @@ import {
   getClientIp,
   parseJsonBody,
   logSecurityEvent,
+  getAdminPassword,
 } from './_utils/security';
 
 interface ExtendedResponse extends ServerResponse {
@@ -24,13 +25,14 @@ function verifyAdminAuthorization(secretOrToken: string | undefined): boolean {
     return false;
   }
 
-  const expectedPassword = process.env.ADMIN_PASSWORD;
-  if (!expectedPassword || expectedPassword.trim().length === 0) {
-    return false;
-  }
+  const expectedPassword = getAdminPassword();
+  const envPassword = process.env.ADMIN_PASSWORD;
 
   // 1. Direct passcode constant-time comparison
-  if (timingSafeEqual(secretOrToken.trim(), expectedPassword.trim())) {
+  if (
+    timingSafeEqual(secretOrToken.trim(), expectedPassword.trim()) ||
+    (envPassword && timingSafeEqual(secretOrToken.trim(), envPassword.trim()))
+  ) {
     return true;
   }
 
@@ -42,12 +44,21 @@ function verifyAdminAuthorization(secretOrToken: string | undefined): boolean {
       if (parts.length >= 2) {
         const expiry = parseInt(parts[1], 10);
         if (Date.now() <= expiry) {
-          const expectedSig = crypto
+          const sigExpected = crypto
             .createHmac('sha256', expectedPassword)
             .update(decoded.tokenData)
             .digest('hex');
-          if (timingSafeEqual(decoded.tokenSignature, expectedSig)) {
+          if (timingSafeEqual(decoded.tokenSignature, sigExpected)) {
             return true;
+          }
+          if (envPassword) {
+            const sigEnv = crypto
+              .createHmac('sha256', envPassword)
+              .update(decoded.tokenData)
+              .digest('hex');
+            if (timingSafeEqual(decoded.tokenSignature, sigEnv)) {
+              return true;
+            }
           }
         }
       }

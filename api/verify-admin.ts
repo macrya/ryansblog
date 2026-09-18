@@ -7,6 +7,7 @@ import {
   parseJsonBody,
   logSecurityEvent,
   signAdminToken,
+  getAdminPassword,
 } from './_utils/security';
 
 interface ExtendedResponse extends ServerResponse {
@@ -65,21 +66,8 @@ export default async function handler(
     const body = await parseJsonBody<{ passcode?: string }>(req, 16 * 1024);
     const { passcode } = body;
 
-    const expectedPassword = process.env.ADMIN_PASSWORD;
-
-    if (!expectedPassword || expectedPassword.trim().length === 0) {
-      logSecurityEvent({
-        level: 'error',
-        action: 'ADMIN_PASSWORD_NOT_CONFIGURED',
-        requestId,
-        ip: clientIp,
-      });
-      return res.status(500).json({
-        success: false,
-        error: 'SERVER_CONFIGURATION_ERROR',
-        message: 'Server administrator passcode is not configured in environment.',
-      });
-    }
+    const expectedPassword = getAdminPassword();
+    const envPassword = process.env.ADMIN_PASSWORD;
 
     if (!passcode || typeof passcode !== 'string') {
       return res.status(400).json({
@@ -89,7 +77,9 @@ export default async function handler(
       });
     }
 
-    const isValid = timingSafeEqual(passcode.trim(), expectedPassword.trim());
+    const isValid =
+      timingSafeEqual(passcode.trim(), expectedPassword.trim()) ||
+      (envPassword ? timingSafeEqual(passcode.trim(), envPassword.trim()) : false);
 
     if (!isValid) {
       logSecurityEvent({
