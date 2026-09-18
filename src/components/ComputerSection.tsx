@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ComputerArticle, CodeBlockItem } from '../types';
-import { Terminal, Copy, Check, Code2, ShieldAlert, Cpu, Sparkles, Binary, Trash2 } from 'lucide-react';
+import { Terminal, Copy, Check, Code2, ShieldAlert, Cpu, Sparkles, Binary, Trash2, Share2 } from 'lucide-react';
+import { BacklinkCitationModal } from './BacklinkCitationModal';
 
 interface ComputerSectionProps {
   articles: ComputerArticle[];
@@ -11,6 +12,7 @@ interface ComputerSectionProps {
 export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: ComputerSectionProps) {
   const [selectedArticleId, setSelectedArticleId] = useState<string>(articles[0]?.id || '');
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
+  const [showCitationModal, setShowCitationModal] = useState<boolean>(false);
 
   const activeArticle = articles.find((a) => a.id === selectedArticleId) || articles[0];
 
@@ -47,7 +49,7 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Article Selector Column */}
           <div className="lg:col-span-4 space-y-3">
-            <h3 className="font-bajaderka text-xl text-stone-800 px-1">Research Papers &amp; Scripts</h3>
+            <h2 className="font-bajaderka text-xl text-stone-800 px-1">Research Papers &amp; Scripts</h2>
 
             <div className="space-y-3">
               {articles.map((art) => {
@@ -68,9 +70,9 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
                       <span>{art.date}</span>
                     </div>
 
-                    <h4 className="font-bajaderka text-lg text-stone-950 leading-snug">
+                    <h3 className="font-bajaderka text-lg text-stone-950 leading-snug">
                       {art.title}
-                    </h4>
+                    </h3>
 
                     <p className="font-nightingale text-xs text-stone-600 italic mt-1 line-clamp-2">
                       {art.subtitle}
@@ -115,25 +117,38 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
                       <span>{activeArticle.date}</span>
                     </div>
 
-                    {isAdmin && onDeleteComputerArticle && (
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm(`Are you sure you want to remove "${activeArticle.title}"?`)) {
-                            onDeleteComputerArticle(activeArticle.id);
-                            const remaining = articles.filter((a) => a.id !== activeArticle.id);
-                            if (remaining.length > 0) {
-                              setSelectedArticleId(remaining[0].id);
-                            }
-                          }
-                        }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
-                        title="Delete this article (Admin)"
+                        onClick={() => setShowCitationModal(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-stone-700 hover:text-[#722F37] bg-stone-100 hover:bg-stone-200 rounded-lg border border-stone-200 transition-colors font-mono"
+                        title="Generate citation / backlink"
+                        id="computer-cite-btn"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete Article</span>
+                        <Share2 className="w-3 h-3 text-[#722F37]" />
+                        <span>Cite / Share</span>
                       </button>
-                    )}
+
+                      {isAdmin && onDeleteComputerArticle && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to remove "${activeArticle.title}"?`)) {
+                              onDeleteComputerArticle(activeArticle.id);
+                              const remaining = articles.filter((a) => a.id !== activeArticle.id);
+                              if (remaining.length > 0) {
+                                setSelectedArticleId(remaining[0].id);
+                              }
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                          title="Delete this article (Admin)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <h2 className="font-bajaderka text-3xl sm:text-4xl text-stone-950 tracking-wide leading-tight mb-2">
@@ -221,6 +236,44 @@ export function ComputerSection({ articles, isAdmin, onDeleteComputerArticle }: 
                     </div>
                   ))}
                 </div>
+
+                {/* Internal Deep Links & Discovery */}
+                <div className="pt-8 mt-10 border-t border-stone-200 text-xs font-sans space-y-3">
+                  <div className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold font-mono">
+                    Interdisciplinary Explorations &middot; MarkRyan Studio
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <a
+                      href="#diary"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">The Diary</span>
+                      <span className="text-[11px] text-stone-500 font-comic">Reflective notebook &amp; letters</span>
+                    </a>
+                    <a
+                      href="#poet"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">The Poet</span>
+                      <span className="text-[11px] text-stone-500 font-nightingale italic">Original verse &amp; meter</span>
+                    </a>
+                    <a
+                      href="#curiosities"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">Random Knowledge</span>
+                      <span className="text-[11px] text-stone-500">Curiosities &amp; Blueprints</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Backlink and citation generator modal */}
+                <BacklinkCitationModal
+                  isOpen={showCitationModal}
+                  onClose={() => setShowCitationModal(false)}
+                  title={activeArticle ? `${activeArticle.title} — Computer Stuff` : 'Computer Stuff — MarkRyan'}
+                  slugOrHash={`#computer/${activeArticle?.id || ''}`}
+                />
               </article>
             ) : (
               <div className="bg-white rounded-2xl p-12 border border-stone-200/80 shadow-sm text-center space-y-3">

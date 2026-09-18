@@ -148,9 +148,9 @@ export function CommentsSection({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 pb-2 border-b border-stone-200">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-[#722F37]" />
-          <h3 className="font-cormorant text-2xl font-medium text-stone-900">
+          <h2 className="font-cormorant text-2xl font-medium text-stone-900">
             Reflections &amp; Correspondence ({postComments.filter((c) => c.status === 'approved').length})
-          </h3>
+          </h2>
         </div>
 
         {/* Moderation Toggle */}
@@ -315,10 +315,10 @@ export function CommentsSection({
         className="bg-white/90 p-5 rounded-2xl border border-stone-200/90 shadow-xs space-y-3"
         id="new-comment-form"
       >
-        <div className="flex items-center gap-2 text-xs font-semibold text-stone-800 pb-1">
+        <h3 className="flex items-center gap-2 text-xs font-semibold text-stone-800 pb-1">
           <User className="w-3.5 h-3.5 text-[#722F37]" />
           <span>Leave a Reflection or Letter</span>
-        </div>
+        </h3>
 
         {/* Anti-Spam Honeypot Field (invisible to genuine users, traps automated bots) */}
         <div

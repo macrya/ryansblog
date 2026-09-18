@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { CuriosityEssay } from '../types';
-import { Compass, Gauge, Cpu, Zap, Bookmark, Layers, ArrowUpRight, Search, Trash2 } from 'lucide-react';
+import { Compass, Gauge, Cpu, Zap, Bookmark, Layers, ArrowUpRight, Search, Trash2, Share2 } from 'lucide-react';
+import { BacklinkCitationModal } from './BacklinkCitationModal';
 
 interface RandomKnowledgeSectionProps {
   essays: CuriosityEssay[];
@@ -20,6 +21,7 @@ export function RandomKnowledgeSection({
   const [selectedEssayId, setSelectedEssayId] = useState<string>(activeEssayId || essays[0]?.id || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showCitationModal, setShowCitationModal] = useState<boolean>(false);
 
   React.useEffect(() => {
     if (activeEssayId) {
@@ -98,7 +100,7 @@ export function RandomKnowledgeSection({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Curiosity Index Drawer */}
           <div className="lg:col-span-4 space-y-4">
-            <h3 className="font-pecita text-2xl text-stone-800 px-1">Curated Dossiers</h3>
+            <h2 className="font-pecita text-2xl text-stone-800 px-1">Curated Dossiers</h2>
             <div className="space-y-3">
               {filteredEssays.map((essay) => {
                 const isSelected = essay.id === activeEssay?.id;
@@ -118,9 +120,9 @@ export function RandomKnowledgeSection({
                       <span>{essay.readTime}</span>
                     </div>
 
-                    <h4 className="font-pecita text-2xl text-stone-900 leading-tight">
+                    <h3 className="font-pecita text-2xl text-stone-900 leading-tight">
                       {essay.title}
-                    </h4>
+                    </h3>
 
                     <p className="font-bricolage text-xs text-stone-600 line-clamp-2 mt-2 leading-relaxed">
                       {essay.summary}
@@ -155,25 +157,38 @@ export function RandomKnowledgeSection({
                       <span>{activeEssay.readTime}</span>
                     </div>
 
-                    {isAdmin && onDeleteCuriosity && (
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm(`Are you sure you want to delete "${activeEssay.title}"?`)) {
-                            onDeleteCuriosity(activeEssay.id);
-                            const remaining = essays.filter((e) => e.id !== activeEssay.id);
-                            if (remaining.length > 0) {
-                              setSelectedEssayId(remaining[0].id);
-                            }
-                          }
-                        }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
-                        title="Delete this essay (Admin)"
+                        onClick={() => setShowCitationModal(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-stone-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100/70 rounded-lg border border-amber-200/80 transition-colors font-bricolage"
+                        title="Generate citation / backlink"
+                        id="curiosity-cite-btn"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete Dossier</span>
+                        <Share2 className="w-3 h-3 text-amber-900" />
+                        <span>Cite / Share</span>
                       </button>
-                    )}
+
+                      {isAdmin && onDeleteCuriosity && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete "${activeEssay.title}"?`)) {
+                              onDeleteCuriosity(activeEssay.id);
+                              const remaining = essays.filter((e) => e.id !== activeEssay.id);
+                              if (remaining.length > 0) {
+                                setSelectedEssayId(remaining[0].id);
+                              }
+                            }
+                          }}
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                          title="Delete this essay (Admin)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <h2 className="font-pecita text-4xl sm:text-5xl text-stone-950 tracking-wide leading-tight mb-4">
@@ -197,10 +212,10 @@ export function RandomKnowledgeSection({
                 {/* Key Diagram Notes / Technical Callouts */}
                 {activeEssay.keyDiagramNotes && activeEssay.keyDiagramNotes.length > 0 && (
                   <div className="mt-8 pt-6 border-t border-stone-200">
-                    <h4 className="font-pecita text-2xl text-stone-900 mb-3 flex items-center gap-2">
+                    <h3 className="font-pecita text-2xl text-stone-900 mb-3 flex items-center gap-2">
                       <Layers className="w-5 h-5 text-amber-800" />
                       <span>Curiosity Blueprint Notes</span>
-                    </h4>
+                    </h3>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {activeEssay.keyDiagramNotes.map((note, nIdx) => (
@@ -239,6 +254,44 @@ export function RandomKnowledgeSection({
                     </div>
                   </div>
                 )}
+
+                {/* Internal Deep Links & Discovery */}
+                <div className="pt-8 mt-10 border-t border-stone-200 text-xs font-sans space-y-3">
+                  <div className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold font-mono">
+                    Interdisciplinary Explorations &middot; MarkRyan Studio
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <a
+                      href="#diary"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">The Diary</span>
+                      <span className="text-[11px] text-stone-500 font-comic">Reflective notebook &amp; letters</span>
+                    </a>
+                    <a
+                      href="#computer"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">Computer Stuff</span>
+                      <span className="text-[11px] text-stone-500 font-mono">Systems, Tor &amp; Metaphysics</span>
+                    </a>
+                    <a
+                      href="#poet"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">The Poet</span>
+                      <span className="text-[11px] text-stone-500 font-nightingale italic">Original verse &amp; meter</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Backlink and citation generator modal */}
+                <BacklinkCitationModal
+                  isOpen={showCitationModal}
+                  onClose={() => setShowCitationModal(false)}
+                  title={activeEssay ? `${activeEssay.title} — Cabinet of Curiosities` : 'Random Knowledge — MarkRyan'}
+                  slugOrHash={`#curiosities/${activeEssay?.id || ''}`}
+                />
               </article>
             ) : (
               <div className="bg-white rounded-2xl p-12 border border-stone-200/80 shadow-sm text-center space-y-3">

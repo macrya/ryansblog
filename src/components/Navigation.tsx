@@ -97,9 +97,12 @@ export function Navigation({
 
         {/* 4 Main Nav Sections */}
         <nav className="hidden md:flex items-center gap-1 bg-stone-200/60 p-1 rounded-full border border-stone-300/60" id="section-nav-tabs">
-          <button
-            type="button"
-            onClick={() => onSelectSection('poet')}
+          <a
+            href="#poet"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectSection('poet');
+            }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
               activeSection === 'poet'
                 ? 'bg-[#722F37] text-white shadow-xs'
@@ -109,11 +112,14 @@ export function Navigation({
           >
             <Feather className="w-3.5 h-3.5" />
             <span>The Poet / Writer</span>
-          </button>
+          </a>
 
-          <button
-            type="button"
-            onClick={() => onSelectSection('curiosities')}
+          <a
+            href="#curiosities"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectSection('curiosities');
+            }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
               activeSection === 'curiosities'
                 ? 'bg-[#722F37] text-white shadow-xs'
@@ -123,11 +129,14 @@ export function Navigation({
           >
             <Compass className="w-3.5 h-3.5" />
             <span>Random Knowledge</span>
-          </button>
+          </a>
 
-          <button
-            type="button"
-            onClick={() => onSelectSection('computer')}
+          <a
+            href="#computer"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectSection('computer');
+            }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
               activeSection === 'computer'
                 ? 'bg-[#722F37] text-white shadow-xs'
@@ -137,11 +146,14 @@ export function Navigation({
           >
             <Terminal className="w-3.5 h-3.5" />
             <span>Computer Stuff</span>
-          </button>
+          </a>
 
-          <button
-            type="button"
-            onClick={() => onSelectSection('diary')}
+          <a
+            href="#diary"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectSection('diary');
+            }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
               activeSection === 'diary'
                 ? 'bg-stone-900 text-amber-50 shadow-xs'
@@ -151,12 +163,15 @@ export function Navigation({
           >
             <BookOpen className="w-3.5 h-3.5" />
             <span>The Blog (Diary)</span>
-          </button>
+          </a>
 
           {isAdmin && (
-            <button
-              type="button"
-              onClick={() => onSelectSection('admin')}
+            <a
+              href="#admin"
+              onClick={(e) => {
+                e.preventDefault();
+                onSelectSection('admin');
+              }}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                 activeSection === 'admin'
                   ? 'bg-[#722F37] text-white shadow-xs'
@@ -166,7 +181,7 @@ export function Navigation({
             >
               <Shield className="w-3.5 h-3.5" />
               <span>Admins Page</span>
-            </button>
+            </a>
           )}
         </nav>
 
@@ -317,55 +332,73 @@ export function Navigation({
       </div>
 
       {/* Mobile Tab Bar */}
-      <div className="md:hidden flex items-center justify-start sm:justify-center gap-1.5 px-3 py-2 border-t border-stone-200/60 bg-stone-100/90 overflow-x-auto text-xs scrollbar-none">
-        <button
-          type="button"
-          onClick={() => onSelectSection('poet')}
-          className={`px-2.5 py-1 rounded-md whitespace-nowrap ${
-            activeSection === 'poet' ? 'bg-[#722F37] text-white font-medium' : 'text-stone-600'
+      <nav
+        aria-label="Mobile Navigation"
+        className="md:hidden flex items-center justify-start sm:justify-center gap-1.5 px-3 py-1.5 border-t border-stone-200/60 bg-stone-100/90 overflow-x-auto text-xs scrollbar-none"
+      >
+        <a
+          href="#poet"
+          onClick={(e) => {
+            e.preventDefault();
+            onSelectSection('poet');
+          }}
+          className={`px-3 py-2 min-h-[44px] flex items-center rounded-lg whitespace-nowrap transition-colors ${
+            activeSection === 'poet' ? 'bg-[#722F37] text-white font-medium shadow-xs' : 'text-stone-700 hover:text-stone-950'
           }`}
         >
           Poet / Writer
-        </button>
-        <button
-          type="button"
-          onClick={() => onSelectSection('curiosities')}
-          className={`px-2.5 py-1 rounded-md whitespace-nowrap ${
-            activeSection === 'curiosities' ? 'bg-[#722F37] text-white font-medium' : 'text-stone-600'
+        </a>
+        <a
+          href="#curiosities"
+          onClick={(e) => {
+            e.preventDefault();
+            onSelectSection('curiosities');
+          }}
+          className={`px-3 py-2 min-h-[44px] flex items-center rounded-lg whitespace-nowrap transition-colors ${
+            activeSection === 'curiosities' ? 'bg-[#722F37] text-white font-medium shadow-xs' : 'text-stone-700 hover:text-stone-950'
           }`}
         >
           Curiosities
-        </button>
-        <button
-          type="button"
-          onClick={() => onSelectSection('computer')}
-          className={`px-2.5 py-1 rounded-md whitespace-nowrap ${
-            activeSection === 'computer' ? 'bg-[#722F37] text-white font-medium' : 'text-stone-600'
+        </a>
+        <a
+          href="#computer"
+          onClick={(e) => {
+            e.preventDefault();
+            onSelectSection('computer');
+          }}
+          className={`px-3 py-2 min-h-[44px] flex items-center rounded-lg whitespace-nowrap transition-colors ${
+            activeSection === 'computer' ? 'bg-[#722F37] text-white font-medium shadow-xs' : 'text-stone-700 hover:text-stone-950'
           }`}
         >
           Computer
-        </button>
-        <button
-          type="button"
-          onClick={() => onSelectSection('diary')}
-          className={`px-2.5 py-1 rounded-md whitespace-nowrap ${
-            activeSection === 'diary' ? 'bg-stone-900 text-white font-medium' : 'text-stone-600'
+        </a>
+        <a
+          href="#diary"
+          onClick={(e) => {
+            e.preventDefault();
+            onSelectSection('diary');
+          }}
+          className={`px-3 py-2 min-h-[44px] flex items-center rounded-lg whitespace-nowrap transition-colors ${
+            activeSection === 'diary' ? 'bg-stone-900 text-white font-medium shadow-xs' : 'text-stone-700 hover:text-stone-950'
           }`}
         >
           Diary
-        </button>
+        </a>
         {isAdmin && (
-          <button
-            type="button"
-            onClick={() => onSelectSection('admin')}
-            className={`px-2.5 py-1 rounded-md whitespace-nowrap ${
-              activeSection === 'admin' ? 'bg-[#722F37] text-white font-medium' : 'text-[#722F37]'
+          <a
+            href="#admin"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectSection('admin');
+            }}
+            className={`px-3 py-2 min-h-[44px] flex items-center rounded-lg whitespace-nowrap transition-colors ${
+              activeSection === 'admin' ? 'bg-[#722F37] text-white font-medium shadow-xs' : 'text-[#722F37]'
             }`}
           >
             Admin
-          </button>
+          </a>
         )}
-      </div>
+      </nav>
     </header>
   );
 }

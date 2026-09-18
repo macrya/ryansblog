@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Core Home / The Poet & The Pen -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Section: The Poet / Writer -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#poet</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Section: Random Knowledge & Engineering Essays -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Curiosities Essay: F1 Ground Effects -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities/f1-ground-effects</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Curiosities Essay: 90s Japanese Combustion -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities/90s-japanese-combustion</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Section: Computer Stuff & UNIX Architecture -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Computer Article: OSINT Graph Reconnaissance -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer/osint-graph-recon</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Computer Article: Philosophy of the UNIX Pipe -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer/unix-pipe-philosophy</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Section: The Diary Page / Personal Reflections -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#diary</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Diary Post: Rain on the Skylight -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#diary/entry-1</loc>
+    <lastmod>2026-09-14T02:14:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Diary Post: On Dostoevsky's Solitude -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#diary/entry-2</loc>
+    <lastmod>2026-09-08T23:42:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- RSS Feed Syndication -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/rss.xml</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- LLM & AI Context Specification -->
+  <url>
+    <loc>https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/llms.txt</loc>
+    <lastmod>2026-09-18T18:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>

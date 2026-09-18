@@ -1,0 +1,42 @@
+# https://www.robotstxt.org/robotstxt.html
+# MarkRyan Creative Developer & Technical Architect
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Major Search Engine Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# LLM & AI Knowledge Indexers (Permitted for llms.txt and public essays)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Canonical Sitemaps and LLM Discovery Endpoints
+Sitemap: https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/sitemap.xml

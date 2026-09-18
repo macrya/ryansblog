@@ -29,15 +29,19 @@
         "title": { "type": "string" },
         "subtitle": { "type": "string" },
         "stanzas": {
-          "type": "string",
-          "description": "Stanzas or serialized poem lines"
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Serialized stanzas or poem lines"
         },
         "date": { "type": "string" },
-        "readTime": { "type": "string" },
-        "favorite": { "type": "string" },
-        "theme": { "type": "string" }
+        "theme": {
+          "type": "string",
+          "enum": ["Love", "Existentialism", "Memory", "Transience"]
+        },
+        "quoteExcerpt": { "type": "string" },
+        "dedication": { "type": "string" }
       },
-      "required": ["id", "title"]
+      "required": ["id", "title", "stanzas", "date", "theme"]
     },
     "CuriosityEssay": {
       "title": "CuriosityEssay",
@@ -46,14 +50,42 @@
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
-        "category": { "type": "string" },
-        "excerpt": { "type": "string" },
-        "content": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": ["F1 Aerodynamics", "90s Combustion", "Mechanical Horology", "Urban Geography"]
+        },
+        "summary": { "type": "string" },
+        "content": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Essay paragraphs"
+        },
         "readTime": { "type": "string" },
-        "date": { "type": "string" },
-        "heroImage": { "type": "string" }
+        "year": { "type": "string" },
+        "keyDiagramNotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "term": { "type": "string" },
+              "definition": { "type": "string" }
+            },
+            "required": ["term", "definition"]
+          }
+        },
+        "specSheet": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "type": "string" }
+            },
+            "required": ["label", "value"]
+          }
+        }
       },
-      "required": ["id", "title", "category", "content"]
+      "required": ["id", "title", "category", "readTime", "year", "summary", "content"]
     },
     "ComputerArticle": {
       "title": "ComputerArticle",
@@ -62,12 +94,37 @@
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
-        "category": { "type": "string" },
-        "summary": { "type": "string" },
-        "content": { "type": "string" },
-        "date": { "type": "string" }
+        "subtitle": { "type": "string" },
+        "date": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": ["OSINT Reconnaissance", "Systems Philosophy", "Low-Level Networking"]
+        },
+        "philosophicalThesis": { "type": "string" },
+        "body": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Article body paragraphs"
+        },
+        "codeBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "filename": { "type": "string" },
+              "language": {
+                "type": "string",
+                "enum": ["python", "bash", "c", "rust"]
+              },
+              "code": { "type": "string" },
+              "annotations": { "type": "string" }
+            },
+            "required": ["id", "filename", "language", "code"]
+          }
+        }
       },
-      "required": ["id", "title", "category", "content"]
+      "required": ["id", "title", "subtitle", "date", "category", "philosophicalThesis", "body"]
     },
     "DiaryPost": {
       "title": "DiaryPost",
@@ -78,15 +135,17 @@
         "title": { "type": "string" },
         "date": { "type": "string" },
         "time": { "type": "string" },
-        "location": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "imageCaption": { "type": "string" },
         "mood": { "type": "string" },
-        "previewSnippet": { "type": "string" },
-        "fullContent": { "type": "string" },
-        "published": { "type": "string" },
+        "weather": { "type": "string" },
+        "location": { "type": "string" },
+        "published": { "type": "boolean" },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["id", "title", "fullContent"]
+      "required": ["id", "title", "date", "time", "content"]
     },
     "Comment": {
       "title": "Comment",
@@ -96,16 +155,24 @@
         "id": { "type": "string" },
         "postId": { "type": "string" },
         "authorName": { "type": "string" },
+        "authorEmail": { "type": "string" },
         "content": { "type": "string" },
-        "date": { "type": "string" },
+        "createdAt": { "type": "string" },
         "status": {
           "type": "string",
           "enum": ["pending", "approved", "flagged"]
         },
-        "avatarUrl": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "isAdmin": { "type": "boolean" }
       },
-      "required": ["id", "postId", "authorName", "content", "status"]
+      "required": ["id", "postId", "authorName", "content", "createdAt", "status"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "System configuration and initialization records",
+      "type": "object",
+      "properties": {
+        "seededAt": { "type": "string" }
+      }
     }
   },
   "firestore": {
@@ -132,6 +199,10 @@
     "/comments/{commentId}": {
       "schema": { "$ref": "#/entities/Comment" },
       "description": "Reader reflections and comments"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/Setting" },
+      "description": "System state flags and settings"
     }
   }
 }

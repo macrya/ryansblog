@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { Poem } from '../types';
 import { WALLPAPER_SNIPPETS } from '../data/initialContent';
-import { BookOpen, Sparkles, Heart, Clock, Quote, Share2, Check, Trash2 } from 'lucide-react';
+import { BookOpen, Sparkles, Heart, Clock, Quote, Share2, Check, Trash2, Link2 } from 'lucide-react';
+import { BacklinkCitationModal } from './BacklinkCitationModal';
 
 interface PoetSectionProps {
   poems: Poem[];
@@ -13,6 +14,7 @@ interface PoetSectionProps {
 export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: PoetSectionProps) {
   const [selectedPoemId, setSelectedPoemId] = useState<string>(poems[0]?.id || 'poem-1');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showCitationModal, setShowCitationModal] = useState<boolean>(false);
 
   const activePoem = poems.find((p) => p.id === selectedPoemId) || poems[0];
 
@@ -190,6 +192,17 @@ export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: P
                   </div>
 
                   <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCitationModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#722F37]/30 hover:border-[#722F37] text-[#722F37] hover:bg-[#722F37]/5 bg-white transition-colors"
+                      title="Generate backlink citation (Markdown, HTML, BibTeX)"
+                      id="cite-poem-btn"
+                    >
+                      <Link2 className="w-3.5 h-3.5 text-[#722F37]" />
+                      <span className="font-sans">Cite / Link</span>
+                    </button>
+
                     {isAdmin && onDeletePoem && (
                       <button
                         type="button"
@@ -230,6 +243,44 @@ export function PoetSection({ poems, onOpenPoemModal, isAdmin, onDeletePoem }: P
                     </button>
                   </div>
                 </div>
+
+                {/* Internal Deep Links & Discovery */}
+                <div className="pt-8 mt-10 border-t border-[#722F37]/20 text-xs font-sans space-y-3">
+                  <div className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold font-mono">
+                    Interdisciplinary Explorations &middot; MarkRyan Studio
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <a
+                      href="#diary"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">The Diary</span>
+                      <span className="text-[11px] text-stone-500 font-comic">Reflective notebook &amp; letters</span>
+                    </a>
+                    <a
+                      href="#computer"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">Computer Stuff</span>
+                      <span className="text-[11px] text-stone-500 font-mono">Systems, Tor &amp; Metaphysics</span>
+                    </a>
+                    <a
+                      href="#curiosities"
+                      className="p-2.5 rounded-xl bg-stone-50 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block font-sans"
+                    >
+                      <span className="font-semibold block text-stone-900">Random Knowledge</span>
+                      <span className="text-[11px] text-stone-500">Curiosities &amp; Blueprints</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Backlink and citation generator modal */}
+                <BacklinkCitationModal
+                  isOpen={showCitationModal}
+                  onClose={() => setShowCitationModal(false)}
+                  title={activePoem ? `${activePoem.title} — MarkRyan Poetry` : 'The Poet & The Writer — MarkRyan'}
+                  slugOrHash={`#poet/${activePoem?.id || ''}`}
+                />
               </article>
             ) : (
               <div className="bg-white/95 backdrop-blur-md rounded-2xl p-12 border-2 border-[#722F37]/20 shadow-xl text-center space-y-4">

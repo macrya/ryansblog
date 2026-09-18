@@ -15,11 +15,14 @@ import {
   Eye,
   Trash2,
   Rss,
+  Share2,
+  Link2,
 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { CommentsSection } from './CommentsSection';
 import { DateDisplay } from './DateDisplay';
 import { DeleteButton } from './DeleteButton';
+import { BacklinkCitationModal } from './BacklinkCitationModal';
 
 interface DiarySectionProps {
   posts: DiaryPost[];
@@ -62,6 +65,7 @@ export function DiarySection({
   const [draftImageUrl, setDraftImageUrl] = useState<string>('');
   const [draftCaption, setDraftCaption] = useState<string>('');
   const [savedNotice, setSavedNotice] = useState<boolean>(false);
+  const [showCitationModal, setShowCitationModal] = useState<boolean>(false);
 
   const currentPost = posts[selectedPostIndex] || posts[0];
 
@@ -232,27 +236,41 @@ export function DiarySection({
               <>
                 {/* Diary Header with Cormorant Garamond */}
                 <header className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500 font-comic tracking-wide">
-                    <DateDisplay
-                      date={currentPost.date}
-                      time={currentPost.time}
-                      format="withTime"
-                      showIcon
-                      className="text-stone-700 font-comic font-medium"
-                      iconClassName="w-3.5 h-3.5 text-stone-400"
-                    />
-                    {currentPost.location && (
-                      <>
-                        <span>&bull;</span>
-                        <span>{currentPost.location}</span>
-                      </>
-                    )}
-                    {currentPost.weather && (
-                      <>
-                        <span>&bull;</span>
-                        <span className="italic">{currentPost.weather}</span>
-                      </>
-                    )}
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-500 font-comic tracking-wide">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <DateDisplay
+                        date={currentPost.date}
+                        time={currentPost.time}
+                        format="withTime"
+                        showIcon
+                        className="text-stone-700 font-comic font-medium"
+                        iconClassName="w-3.5 h-3.5 text-stone-400"
+                      />
+                      {currentPost.location && (
+                        <>
+                          <span>&bull;</span>
+                          <span>{currentPost.location}</span>
+                        </>
+                      )}
+                      {currentPost.weather && (
+                        <>
+                          <span>&bull;</span>
+                          <span className="italic">{currentPost.weather}</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Cite / Share Backlink Widget */}
+                    <button
+                      type="button"
+                      onClick={() => setShowCitationModal(true)}
+                      className="flex items-center gap-1.5 text-[11px] font-sans font-medium text-stone-600 hover:text-[#722F37] border border-stone-200/90 hover:border-[#722F37]/30 px-2.5 py-1 rounded-full transition-colors bg-white/70 shadow-2xs"
+                      title="Generate backlink citation (Markdown, HTML, BibTeX)"
+                      id="diary-cite-btn"
+                    >
+                      <Share2 className="w-3 h-3 text-[#722F37]" />
+                      <span>Cite &amp; Share</span>
+                    </button>
                   </div>
 
                   <h1 className="font-cormorant text-4xl sm:text-5xl lg:text-6xl font-light text-stone-900 tracking-tight leading-tight">
@@ -266,8 +284,10 @@ export function DiarySection({
                     <div className="aspect-video w-full rounded-lg overflow-hidden border border-stone-300/70 shadow-xs bg-stone-300/30">
                       <img
                         src={currentPost.imageUrl}
-                        alt={currentPost.title}
+                        alt={currentPost.imageCaption ? `${currentPost.title} — ${currentPost.imageCaption}` : `${currentPost.title} — Photograph by MarkRyan`}
                         referrerPolicy="no-referrer"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           // Hide broken image container cleanly if asset fails to load
                           const parent = e.currentTarget.parentElement;
@@ -298,6 +318,44 @@ export function DiarySection({
                   onDeleteComment={onDeleteComment}
                   isAdmin={isAdmin}
                   onRequireAdminAuth={onRequireAdminAuth}
+                />
+
+                {/* Internal Deep Links & Discovery */}
+                <div className="pt-8 mt-10 border-t border-stone-200 text-xs font-sans space-y-3">
+                  <div className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">
+                    Continue Exploring MarkRyan Studio
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <a
+                      href="#poet"
+                      className="p-2.5 rounded-xl bg-stone-100/70 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block"
+                    >
+                      <span className="font-semibold block text-stone-900">The Poet &amp; The Pen</span>
+                      <span className="text-[11px] text-stone-500">Original verse &amp; stanzas</span>
+                    </a>
+                    <a
+                      href="#curiosities"
+                      className="p-2.5 rounded-xl bg-stone-100/70 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block"
+                    >
+                      <span className="font-semibold block text-stone-900">Random Knowledge</span>
+                      <span className="text-[11px] text-stone-500">F1 aerodynamics &amp; combustion</span>
+                    </a>
+                    <a
+                      href="#computer"
+                      className="p-2.5 rounded-xl bg-stone-100/70 hover:bg-white border border-stone-200 text-stone-700 hover:text-[#722F37] transition-all block"
+                    >
+                      <span className="font-semibold block text-stone-900">Computer Stuff</span>
+                      <span className="text-[11px] text-stone-500">OSINT graph recon &amp; UNIX pipes</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Backlink and citation generator modal */}
+                <BacklinkCitationModal
+                  isOpen={showCitationModal}
+                  onClose={() => setShowCitationModal(false)}
+                  title={currentPost.title}
+                  slugOrHash={`#diary/${currentPost.id}`}
                 />
 
                 {isAdmin && onDeletePost && (
@@ -333,6 +391,7 @@ export function DiarySection({
         ) : (
           /* Writing Mode — A Fresh Blank Diary Page */
           <div className="space-y-6" id="diary-writing-canvas">
+            <h1 className="sr-only">Compose New Diary Entry — MarkRyan</h1>
             <div className="flex items-center justify-between text-xs text-stone-500 font-comic pb-2">
               <div className="flex items-center gap-2">
                 <span>Today &middot; {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
@@ -373,7 +432,13 @@ export function DiarySection({
             {draftImageUrl && (
               <div className="space-y-2">
                 <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-stone-300">
-                  <img src={draftImageUrl} alt="Attachment" className="w-full h-full object-cover" />
+                  <img
+                    src={draftImageUrl}
+                    alt="Attached 16:9 photograph preview for diary entry"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => setDraftImageUrl('')}

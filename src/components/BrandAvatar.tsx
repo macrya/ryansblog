@@ -144,9 +144,10 @@ export function BrandAvatar({
           {!hasFailedAll ? (
             <img
               src={activeSrc}
-              alt="MarkRyan"
+              alt="MarkRyan — Creative Developer &amp; Technical Architect"
               onError={handleImageError}
               referrerPolicy="no-referrer"
+              decoding="async"
               className="w-full h-full object-cover object-center rounded-full transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
@@ -216,8 +217,9 @@ export function BrandAvatar({
               <div className="relative w-36 h-36 rounded-2xl overflow-hidden border-2 border-[#722F37]/20 shadow-md bg-stone-100 mb-4 group">
                 <img
                   src={activeSrc}
-                  alt="MarkRyan"
+                  alt="MarkRyan — Creative Developer &amp; Technical Architect profile portrait"
                   referrerPolicy="no-referrer"
+                  decoding="async"
                   className="w-full h-full object-cover object-top"
                 />
                 {/* Only admins see the upload hover overlay on the modal photo */}

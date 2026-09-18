@@ -1,0 +1,31 @@
+# MarkRyan — Creative Developer & Technical Architect
+> Personal website, literary folio, engineering curiosities, UNIX systems architecture, and quiet diary reflections by MarkRyan.
+
+MarkRyan is a creative developer, technical architect, and essayist operating at the intersection of classical literature, mechanical engineering (F1 ground effects, analog combustion, horology), distributed computing (UNIX pipe philosophy, OSINT graph correlation), and personal contemplative writing.
+
+## Core Sections & Canonical Routes
+
+- [The Poet & The Pen](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#poet): Original poetry collection exploring love, Cartesian geometry, St. Petersburg existentialism, and thermodynamic entropy.
+- [Random Knowledge & Curiosities](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities): Deep-dive engineering dossiers on Formula 1 aerodynamics, Venturi tunnels, and 90s Japanese combustion engineering.
+- [Computer Stuff & Systems Architecture](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer): Technical research papers and production scripts covering OSINT graph reconnaissance, Tor onion routing, and UNIX composability.
+- [The Diary](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#diary): Contemplative, unlined developer journal entries on late-night problem solving, silence, and Dostoevsky.
+
+## Key Articles & Dossiers
+
+- [Ground Effect & Venturi Tunnels: The Fluid Physics of Modern Formula 1](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities/f1-ground-effects): An analysis of Colin Chapman's Lotus 78, Bernoulli pressure drops, dynamic ride-height stall, and modern 2022-2026 ground effect aerodynamics.
+- [The Golden Decade of 90s Japanese Combustion: RB26, 2JZ & B16 VTEC](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#curiosities/90s-japanese-combustion): Engineering exploration of cast-iron block stiffness, hydraulic rocker locking pins, and pneumatic harmonics.
+- [OSINT Graph Reconnaissance: Automated Entity Correlation](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer/osint-graph-recon): Python 3.12+ pipeline utilizing Tor SOCKS5 relays, SHA-256 fingerprint normalization, and NetworkX betweenness centrality.
+- [The Philosophy of the UNIX Pipe: Composable Ontologies](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/#computer/unix-pipe-philosophy): Analysis of Doug McIlroy's 1964 composability thesis and high-throughput stream algebra.
+
+## Machine Discovery & Feeds
+
+- [RSS 2.0 Feed](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/rss.xml): Full content feed for diary entries and essays.
+- [XML Sitemap](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/sitemap.xml): Search engine indexing manifest.
+- [LLMs Full Archive](https://ais-pre-g3gywunwnq6uc56qmue35w-593119614601.europe-west1.run.app/llms-full.txt): Comprehensive text dump formatted for large language model ingest and citations.
+
+## Social & Verification Profiles
+
+- GitHub: https://github.com/macrya
+- YouTube: https://youtube.com/@mr.ryan.k
+- Instagram: https://www.instagram.com/ryan_indubitably
+- Spotify: https://open.spotify.com/user/macrya
