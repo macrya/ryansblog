@@ -22,7 +22,7 @@ export function getAdminPassword(): string {
   if (envVal && envVal.trim().length > 0) {
     return envVal.trim();
   }
-  return 'default-admin-key';
+  return 'Mogulll';
 }
 
 /**

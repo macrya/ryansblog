@@ -93,7 +93,10 @@ function AppInner() {
   const [selectedCuriosityId, setSelectedCuriosityId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return Boolean(sessionStorage.getItem('markryan_admin_token'));
+      return Boolean(
+        sessionStorage.getItem('markryan_admin_token') ||
+        localStorage.getItem('markryan_admin_token')
+      );
     }
     return false;
   });
@@ -182,7 +185,10 @@ function AppInner() {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       const hasSessionToken =
         typeof window !== 'undefined' &&
-        Boolean(sessionStorage.getItem('markryan_admin_token'));
+        Boolean(
+          sessionStorage.getItem('markryan_admin_token') ||
+          localStorage.getItem('markryan_admin_token')
+        );
 
       if (user) {
         const isPrivileged = await verifyUserIsAdmin(user);
@@ -523,6 +529,7 @@ function AppInner() {
       console.warn('Firebase sign out error:', e);
     }
     sessionStorage.removeItem('markryan_admin_token');
+    localStorage.removeItem('markryan_admin_token');
     localStorage.removeItem('markryan_is_admin');
     setIsAdmin(false);
     if (activeSection === 'admin') {
