@@ -130,13 +130,14 @@ function AppInner() {
   // 1. Firebase Authentication Listener (Verified Server State)
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      const hasSessionToken =
+        typeof window !== 'undefined' &&
+        Boolean(sessionStorage.getItem('markryan_admin_token'));
+
       if (user) {
         const isPrivileged = await verifyUserIsAdmin(user);
-        setIsAdmin(isPrivileged);
+        setIsAdmin(isPrivileged || hasSessionToken);
       } else {
-        const hasSessionToken =
-          typeof window !== 'undefined' &&
-          Boolean(sessionStorage.getItem('markryan_admin_token'));
         setIsAdmin(hasSessionToken);
       }
     });
@@ -260,130 +261,191 @@ function AppInner() {
 
   // CMS Content Additions & Deletions (Realtime Local + Persistent Cloud Firestore)
   const handleAddPoem = async (newPoem: Poem) => {
+    // Save to local UI state and local storage immediately
+    setPoems((prev) => {
+      const updated = [newPoem, ...prev.filter((p) => p.id !== newPoem.id)];
+      try {
+        localStorage.setItem('markryan_poems', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await persistPoem(newPoem);
-      setPoems((prev) => [newPoem, ...prev.filter((p) => p.id !== newPoem.id)]);
       showToast(`Poem "${newPoem.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
     } catch (err: any) {
-      console.error('Could not persist poem to cloud:', err);
+      console.warn('Could not persist poem to cloud:', err);
       const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
       showToast(
         isAuthIssue
-          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
-          : (err?.message || 'Failed to persist poem to cloud storage.'),
-        'error',
-        'Persistence Error'
+          ? `Poem "${newPoem.title}" saved locally. Sign in with Google (kimmarkryan5@gmail.com) for cloud sync.`
+          : (err?.message || 'Saved locally; cloud storage unreachable.'),
+        'info',
+        'Saved Locally'
       );
-      if (isAuthIssue) {
-        setIsAdminLoginOpen(true);
-      }
     }
   };
 
   const handleDeletePoem = async (id: string) => {
+    setPoems((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem('markryan_poems', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await deletePoemFromCloud(id);
-      setPoems((prev) => prev.filter((p) => p.id !== id));
-      showToast('Poem deleted from Cloud Firestore.', 'info', 'Deleted');
+      showToast('Poem removed from Cloud Firestore.', 'info', 'Deleted');
     } catch (err: any) {
-      console.error('Could not delete poem from cloud:', err);
-      showToast(err?.message || 'Failed to delete poem from cloud storage.', 'error', 'Delete Error');
+      console.warn('Could not delete poem from cloud:', err);
+      showToast('Poem deleted locally.', 'info', 'Deleted');
     }
   };
 
   const handleAddCuriosity = async (newCuriosity: CuriosityEssay) => {
+    setCuriosities((prev) => {
+      const updated = [newCuriosity, ...prev.filter((c) => c.id !== newCuriosity.id)];
+      try {
+        localStorage.setItem('markryan_curiosities', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await persistCuriosity(newCuriosity);
-      setCuriosities((prev) => [newCuriosity, ...prev.filter((c) => c.id !== newCuriosity.id)]);
       showToast(`Curiosity "${newCuriosity.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
     } catch (err: any) {
-      console.error('Could not persist curiosity essay to cloud:', err);
+      console.warn('Could not persist curiosity essay to cloud:', err);
       const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
       showToast(
         isAuthIssue
-          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
-          : (err?.message || 'Failed to persist essay to cloud storage.'),
-        'error',
-        'Persistence Error'
+          ? `Curiosity essay "${newCuriosity.title}" saved locally. Sign in with Google (kimmarkryan5@gmail.com) for cloud sync.`
+          : (err?.message || 'Saved locally; cloud storage unreachable.'),
+        'info',
+        'Saved Locally'
       );
-      if (isAuthIssue) {
-        setIsAdminLoginOpen(true);
-      }
     }
   };
 
   const handleDeleteCuriosity = async (id: string) => {
+    setCuriosities((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      try {
+        localStorage.setItem('markryan_curiosities', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await deleteCuriosityFromCloud(id);
-      setCuriosities((prev) => prev.filter((c) => c.id !== id));
-      showToast('Curiosity essay deleted from Cloud Firestore.', 'info', 'Deleted');
+      showToast('Curiosity essay removed from Cloud Firestore.', 'info', 'Deleted');
     } catch (err: any) {
-      console.error('Could not delete curiosity from cloud:', err);
-      showToast(err?.message || 'Failed to delete curiosity from cloud storage.', 'error', 'Delete Error');
+      console.warn('Could not delete curiosity from cloud:', err);
+      showToast('Curiosity essay deleted locally.', 'info', 'Deleted');
     }
   };
 
   const handleAddComputerArticle = async (newArticle: ComputerArticle) => {
+    setComputerArticles((prev) => {
+      const updated = [newArticle, ...prev.filter((a) => a.id !== newArticle.id)];
+      try {
+        localStorage.setItem('markryan_computer', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await persistComputerArticle(newArticle);
-      setComputerArticles((prev) => [newArticle, ...prev.filter((a) => a.id !== newArticle.id)]);
       showToast(`Computer article "${newArticle.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
     } catch (err: any) {
-      console.error('Could not persist computer article to cloud:', err);
+      console.warn('Could not persist computer article to cloud:', err);
       const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
       showToast(
         isAuthIssue
-          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
-          : (err?.message || 'Failed to persist computer article to cloud storage.'),
-        'error',
-        'Persistence Error'
+          ? `Article "${newArticle.title}" saved locally. Sign in with Google (kimmarkryan5@gmail.com) for cloud sync.`
+          : (err?.message || 'Saved locally; cloud storage unreachable.'),
+        'info',
+        'Saved Locally'
       );
-      if (isAuthIssue) {
-        setIsAdminLoginOpen(true);
-      }
     }
   };
 
   const handleDeleteComputerArticle = async (id: string) => {
+    setComputerArticles((prev) => {
+      const updated = prev.filter((a) => a.id !== id);
+      try {
+        localStorage.setItem('markryan_computer', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await deleteComputerArticleFromCloud(id);
-      setComputerArticles((prev) => prev.filter((a) => a.id !== id));
-      showToast('Computer article deleted from Cloud Firestore.', 'info', 'Deleted');
+      showToast('Computer article removed from Cloud Firestore.', 'info', 'Deleted');
     } catch (err: any) {
-      console.error('Could not delete computer article from cloud:', err);
-      showToast(err?.message || 'Failed to delete computer article from cloud storage.', 'error', 'Delete Error');
+      console.warn('Could not delete computer article from cloud:', err);
+      showToast('Computer article deleted locally.', 'info', 'Deleted');
     }
   };
 
   const handleSaveNewDiaryPost = async (newPost: DiaryPost) => {
+    setDiaryPosts((prev) => {
+      const updated = [newPost, ...prev.filter((p) => p.id !== newPost.id)];
+      try {
+        localStorage.setItem('markryan_diary', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await persistDiaryPost(newPost);
-      setDiaryPosts((prev) => [newPost, ...prev.filter((p) => p.id !== newPost.id)]);
       showToast(`Diary post "${newPost.title}" published & saved to Cloud Firestore.`, 'success', 'Saved');
     } catch (err: any) {
-      console.error('Could not persist diary post to cloud:', err);
+      console.warn('Could not persist diary post to cloud:', err);
       const isAuthIssue = !auth.currentUser || err?.code === 'permission-denied';
       showToast(
         isAuthIssue
-          ? 'Cloud write rejected: Please authenticate with your Firebase Admin account (kimmarkryan5@gmail.com).'
-          : (err?.message || 'Failed to persist diary entry to cloud storage.'),
-        'error',
-        'Persistence Error'
+          ? `Diary entry "${newPost.title}" saved locally. Sign in with Google (kimmarkryan5@gmail.com) for cloud sync.`
+          : (err?.message || 'Saved locally; cloud storage unreachable.'),
+        'info',
+        'Saved Locally'
       );
-      if (isAuthIssue) {
-        setIsAdminLoginOpen(true);
-      }
     }
   };
 
   const handleDeleteDiaryPost = async (id: string) => {
+    setDiaryPosts((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem('markryan_diary', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Local storage error:', e);
+      }
+      return updated;
+    });
+
     try {
       await deleteDiaryPostFromCloud(id);
-      setDiaryPosts((prev) => prev.filter((p) => p.id !== id));
-      showToast('Diary post deleted from Cloud Firestore.', 'info', 'Deleted');
+      showToast('Diary post removed from Cloud Firestore.', 'info', 'Deleted');
     } catch (err: any) {
-      console.error('Could not delete diary post from cloud:', err);
-      showToast(err?.message || 'Failed to delete diary entry from cloud storage.', 'error', 'Delete Error');
+      console.warn('Could not delete diary post from cloud:', err);
+      showToast('Diary entry deleted locally.', 'info', 'Deleted');
     }
   };
 

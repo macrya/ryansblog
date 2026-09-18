@@ -318,6 +318,19 @@ export function AdminLoginModal({
                   <span>{isLoading ? 'Authorizing...' : 'Unlock Admin Access'}</span>
                 </button>
               </div>
+
+              <div className="pt-3 border-t border-stone-100 text-center">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-medium border border-stone-200 flex items-center justify-center gap-2 transition-colors"
+                  id="admin-google-signin-btn-passcode-tab"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Sign in with Google ({SUPERADMIN_EMAIL})</span>
+                </button>
+              </div>
             </form>
           ) : (
             <form onSubmit={handleEmailSubmit} className="space-y-4" id="admin-email-form">
